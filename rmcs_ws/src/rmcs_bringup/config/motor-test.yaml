@@ -1,0 +1,52 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::hardware::MotorTest -> motor_test
+      - rmcs_core::debug::ValueCollector -> motor_test_recorder
+
+motor_test:
+  ros__parameters:
+    # Optional serial filter. Leave empty only when this is the sole connected CBoard.
+    board_serial: ""
+    motor_id: 1
+    # Verify against your GM6020 firmware/protocol: voltage or current.
+    motor_command_mode: "voltage"
+    reversed: false
+    # Start with feedback only. Set true and tune gains to drive the motor.
+    enabled: false
+    max_velocity: 1.0             # rad/s
+    angle_range: 0.5              # rad either side of angle-mode entry position
+    joystick_deadzone: 0.05
+    feedback_timeout: 0.1         # seconds
+    remote_timeout: 0.2           # seconds
+    velocity_filter_cutoff: 30.0  # Hz
+    # DjiMotor control_torque interface units; voltage mode is a scaled command,
+    # not a calibrated physical torque. No shared motors on this CAN command group.
+    output_limit: 0.05
+    # Gains are deliberately zero: tune on your hardware, speed loop first.
+    velocity_kp: 0.0
+    velocity_ki: 0.0
+    velocity_kd: 0.0
+    velocity_integral_limit: 100.0
+    angle_kp: 0.0
+    angle_ki: 0.0
+    angle_kd: 0.0
+    angle_integral_limit: 100.0
+
+motor_test_recorder:
+  ros__parameters:
+    csv_path: "/tmp/motor_test_<timestamp>.csv"
+    write_interval: 10
+    flush_interval: 100
+    signals:
+      - /motor_test/motor/angle
+      - /motor_test/motor/velocity
+      - /motor_test/filtered_velocity
+      - /motor_test/target_velocity
+      - /motor_test/target_angle
+      - /motor_test/motor/control_torque
+      - /motor_test/joystick
+      - /motor_test/mode
+      - /motor_test/feedback_valid
+      - /motor_test/remote_valid
