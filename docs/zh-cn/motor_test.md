@@ -1,18 +1,18 @@
 # 任务三：单个 GM6020 电机实验
 
-实现位于 `rmcs_core/src/hardware/motor_test.cpp`，同一个文件包含状态/控制计算组件和命令发送伙伴组件。状态组件输出控制量，伙伴组件通过 DjiMotor 的输入依赖在计算完成后发送 CAN2 命令。
+实现位于 `rmcs_core/src/hardware/motor_test.cpp`，同一个文件包含状态/控制计算组件和命令发送伙伴组件。状态组件输出控制量，伙伴组件通过 DjiMotor 的输入依赖在计算完成后发送 CAN1 命令。速度 PI 的纯计算部分位于 `hardware/util/motor_test_speed_controller.hpp`。
 
 ## 硬件前提
 
-本实现使用当前仓库的 `librmcs::board::CBoard` SDK，并不是任意 CBoard 的通用固件。SDK 已提供 CBoard 专用接口；仍需向负责人确认控制板刷有配套的 RMCS 通信固件。电脑通过兼容的板卡通信链路运行 RMCS，电机连接板卡 CAN2，DR16 通过板卡 DBUS 接口接入。
+本实现使用当前仓库的 `librmcs::board::CBoard` SDK，并不是任意 CBoard 的通用固件。SDK 已提供 CBoard 专用接口；仍需向负责人确认控制板刷有配套的 RMCS 通信固件。电脑通过兼容的板卡通信链路运行 RMCS，电机连接板卡 CAN1，DR16 通过板卡 DBUS 接口接入。
 
 单电机独立实验使用；发送帧中同组其他电机槽位清零，不要与整车控制程序同时运行。确认电机 ID、CAN 配置和电源接线。固定电机并保留可立即断电的方式。
 
 ## 配置与启动
 
-在 `rmcs_bringup/config/motor-test.yaml` 填写 `board_serial`；若电脑只连接这一块 CBoard，可以留空自动选择。按电机实际固件选择 `motor_command_mode`（`voltage` 或 `current`），不能仅凭型号猜测。ID 范围为 1–7。
+在 `rmcs_bringup/config/motor-test.yaml` 填写 `board_serial`；若电脑只连接这一块 CBoard，可以留空自动选择。照片中的电机标签写着“已开电流环”，所以配置选择 `current` 模式；若电机实际设置不同，需要按现场配置调整。ID 范围为 1–7。当前接线是 CAN1，组件也配置为 CAN1。
 
-先保留 `enabled: false`，PID 增益默认均为零。在项目开发环境、依赖和子模块齐全后运行：
+当前台架配置为 `enabled: true`，下档居中后才允许输出。若只检查接线和反馈，先设为 `enabled: false`。在项目开发环境、依赖和子模块齐全后运行：
 
 ```bash
 build-rmcs
@@ -45,13 +45,50 @@ ros2 launch rmcs_bringup rmcs.launch.py robot:=motor-test
 ## 调试和记录
 
 1. 禁止输出时手动转动电机、移动摇杆，检查 CSV 中角度、速度、摇杆和两个 valid 标志。valid 为 0 时反馈可能为初值或旧值。
-2. 配置 `enabled: true`，保持较小的速度和输出限幅。速度环先只调 P，再按需要添加 I、D，确认正反转及回零稳定。
-3. 保留速度环参数，再调角度环；位置环输出被限制为 ±max_velocity。
+2. 配置 `enabled: true`，用中档测试速度 PI；先保持约三分之一行程的固定输入几秒，记录完整起转过程，不要反复拨动摇杆。速度模式回中立即释放力矩并清空积分，不主动保持位置。明显振荡时下档停机。
+3. 上档测试角度环；位置环输出被限制为 ±angle_max_velocity。速度模式和角度模式的内环参数分开，避免速度调参破坏已调好的角度模式。
 4. 比较原始速度与低通滤波速度，调整截止频率。验证失联、恢复、切换模式及跨零定位。
 5. 录制速度控制、角度控制和停机视频，同时展示目标/反馈曲线。
 
-CSV 在运行程序的电脑 `/tmp/motor_test_<timestamp>.csv`，配置为每 10 次更新记录一次，1000 Hz 时约为 100 Hz。index 是采样序号，不是时间戳。mode 为 0/1/2，分别表示停机/速度/角度。内部接口不是自动发布的 ROS 话题。
+CSV 在运行程序的电脑 `/tmp/motor_test_<timestamp>.csv`，配置为每 5 次更新记录一次，500 Hz 时约为 100 Hz。index 是采样序号，不是时间戳。mode 为 0/1/2，分别表示停机/速度/角度。内部接口不是自动发布的 ROS 话题。
 
-PID 复用项目 `PidCalculator`：积分累加和差分没有显式 dt，调参时保持执行频率固定。停机和切换时清空积分及差分历史。默认零增益不是可用的实机调参结果。
+20:12 台架记录中出现了 17 次发送缓冲池耗尽错误，并观测到数十毫秒的反馈接收空窗。因此将执行/发送频率从 1000 Hz 降至 500 Hz，作为降低 USB 提交负载的对照测试；PI 按时间积分，不需要同步放大 Ki。这不能保证消除底层延迟，也不会增加固定角度停顿时已触顶的力矩。复测需同时比较发送错误、feedback_age 和持续停转期间的力矩指令。
 
-`output_limit` 使用 DjiMotor 的 control_torque 接口单位；尤其电压模式仅是封装的比例命令，不能当作经过标定的真实转矩。反馈超时使用单调时钟，滤波采样率来自执行器实际配置。
+## 速度 PI 与参数单位
+
+历史日志中，小输入时纯 P 只产生很小且不增长的力矩；提高 P 后又出现过冲。慢力矩斜率限制还曾让电机超速后继续收到正力矩。速度模式现在采用低增益 PI，积分逐渐抵消持续阻力，并带积分限幅及输出饱和防累积。没有加入未经测量的固定摩擦补偿或起步力矩跳变。
+
+| 参数 | 当前值 | 含义 |
+| --- | --- | --- |
+| max_velocity | 3.0 | 满杆速度 rad/s，约 0.48 转/秒 |
+| speed_kp | 0.008 | 比例增益 N·m/(rad/s) |
+| speed_ki | 0.05 | 每秒积分增益 N·m/((rad/s)·s) |
+| speed_integral_limit | 0.09 | 积分力矩限幅 N·m，不是误差累加值 |
+| speed_output_limit | 0.09 | 速度模式总指令力矩限幅 N·m |
+| output_limit | 0.08 | 角度模式总指令力矩限幅 N·m |
+| speed_acceleration_limit | 6.0 | 目标速度变化率 rad/s² |
+| speed_filter_cutoff | 30.0 | 速度模式低通截止频率 Hz |
+| speed_feedback_timeout | 0.02 | 速度模式允许的最长反馈接收空窗，秒 |
+
+积分按控制时间间隔累加，单次 dt 最大取两个标称周期，避免一次卡顿造成积分跳变。控制周期超过反馈超时门槛则清零并要求重新下档居中解锁。摇杆回中、指令反向、切换模式、反馈/遥控失效会清掉相应历史。只有目标速度做斜坡，速度模式纠正力矩不再经过 `output_slew_rate`。
+
+角度模式继续使用原来的 `velocity_kp/ki/kd`、`velocity_filter_cutoff` 和 `output_slew_rate`。其 PID 仍复用项目 `PidCalculator` 的逐样本积分/差分，单位与新的 `speed_ki` 不同。不要互抄数值。角度环上限单独设置为 `angle_max_velocity`。
+
+20:18 的 500 Hz 记录未出现发送缓冲不足错误，但仍有持续约一秒的停顿，期间有效反馈正常且指令顶到 ±0.08 N·m。因此只将速度模式力矩上限和积分限幅提高到 0.09 N·m；角度模式仍限制为 0.08 N·m，PI 增益不变。这是小幅增加余量，不能保证消除所有角度阻力或通信延迟。未指定 `speed_output_limit` 时仍回退到 `output_limit`。
+
+20:20 记录中速度模式没有触及 0.09 N·m 上限，也没有发送缓冲错误；若干连续运行中的停顿约为 0.05–0.18 秒，期间积分力矩逐步增长。下一次只将 speed_ki 从 0.04 提至 0.05，加快持续误差下的力矩补偿，保留其余参数。实机需检查停顿是否减少且未增加过冲。
+
+20:24 日志暴露了更长的反馈空窗：目标为 -3 rad/s 时，同一速度反馈保持约 66 ms，期间积分继续增加力矩，随后收到约 -19.6 rad/s 的反馈。两次启动还报告了输入解析错误，但不足以证明解析错误与运行时延迟有相同原因。将 speed_ki 固定回 0.05，并增加速度模式 20 ms 反馈看门狗：超过门槛时请求零力矩、清空 PI、撤销使能，反馈恢复也不会自动重新输出，必须下档居中重新解锁。看到 `Speed feedback gap` 警告时应检查通信，不要调大这个超时值掩盖问题。此保护可能将原来的走走停停变成明确停机，它不是消除链路延迟的办法；USB 本身阻塞时，零指令也未必能及时送到板端，仍需板端命令超时保护。
+
+CSV 前 13 列保留原顺序，其中 `target_velocity` 在速度模式下是斜坡后的目标。新追加 `requested_velocity`（摇杆原始目标）、`speed_p_torque`、`speed_i_torque`、`requested_torque`（限幅前）、`feedback_age`（最近 CAN 接收距当前时间，秒）和 `control_period`（秒）。`feedback_valid=1` 只说明未超过超时阈值，不能据此排除 USB/WSL 延迟。电机 `/torque` 是驱动基于电流换算的反馈，不是独立力矩传感器测量。
+
+此配置是基于台架记录选择的 PI 起点；控制器测试及编译通过不代表实机已达到全速段稳定。启动时会打印生效的 PI 参数，可避免加载旧代码/配置而不自知。
+
+无需连接电机即可检查 PI 的积分、限幅、停机清零、反向、加速斜坡和超速纠正：
+
+```bash
+g++ -std=c++23 -O2 -Wall -Wextra -Werror -I rmcs_ws/src/rmcs_core/src \
+  rmcs_ws/src/rmcs_core/test/motor_test_speed_controller_test.cpp \
+  -o /tmp/motor_test_speed_controller_test
+/tmp/motor_test_speed_controller_test
+```

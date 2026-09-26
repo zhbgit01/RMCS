@@ -16,6 +16,7 @@
 #include "filter/low_pass_filter.hpp"
 #include "hardware/device/dji_motor.hpp"
 #include "hardware/device/dr16.hpp"
+#include "hardware/util/motor_test_speed_controller.hpp"
 
 namespace rmcs_core::hardware {
 
@@ -45,7 +46,7 @@ public:
         , command_(create_partner_component<Command>(get_component_name() + "_command", *this))
         , motor_(*this, *command_, "/motor_test/motor") {
         const auto serial = param<std::string>("board_serial", "");
-        const auto mode = param<std::string>("motor_command_mode", "voltage");
+        const auto mode = param<std::string>("motor_command_mode", "current");
         const auto id = param<int>("motor_id", 1);
         if (id < 1 || id > 7 || (mode != "voltage" && mode != "current"))
             throw std::invalid_argument("motor_test: invalid motor ID or command mode");
@@ -67,9 +68,21 @@ public:
             throw std::invalid_argument("motor_test: invalid joystick deadzone");
         timeout_ = positive("feedback_timeout", 0.1);
         remote_timeout_ = positive("remote_timeout", 0.2);
+        speed_feedback_timeout_ = positive("speed_feedback_timeout", 0.02);
+        if (speed_feedback_timeout_ > timeout_)
+            throw std::invalid_argument("motor_test: speed feedback timeout exceeds general timeout");
         const auto limit = positive("output_limit", 0.05);
+        output_slew_rate_ = positive("output_slew_rate", 0.25);
+        const auto speed_limit = positive("speed_output_limit", limit);
+        speed_config_ = {
+            param<double>("speed_kp", 0.008), param<double>("speed_ki", 0.04),
+            param<double>("speed_integral_limit", speed_limit), speed_limit,
+            positive("speed_acceleration_limit", 6.0)};
+        speed_controller_.configure(speed_config_);
+        speed_cutoff_ = positive("speed_filter_cutoff", 30.0);
+        // Keep the existing angle-mode inner loop separate from speed tuning.
         velocity_pid_ = make_pid("velocity", limit);
-        angle_pid_ = make_pid("angle", max_velocity_);
+        angle_pid_ = make_pid("angle", positive("angle_max_velocity", max_velocity_));
         cutoff_ = positive("velocity_filter_cutoff", 30.0);
         register_input("/predefined/update_rate", update_rate_);
         register_output("/motor_test/motor/control_torque", output_, 0.0);
@@ -80,6 +93,12 @@ public:
         register_output("/motor_test/mode", mode_output_, 0.0);
         register_output("/motor_test/feedback_valid", feedback_valid_, 0.0);
         register_output("/motor_test/remote_valid", remote_valid_, 0.0);
+        register_output("/motor_test/requested_velocity", requested_velocity_, 0.0);
+        register_output("/motor_test/speed_p_torque", speed_p_, 0.0);
+        register_output("/motor_test/speed_i_torque", speed_i_, 0.0);
+        register_output("/motor_test/requested_torque", requested_torque_, 0.0);
+        register_output("/motor_test/feedback_age", feedback_age_, -1.0);
+        register_output("/motor_test/control_period", control_period_, 0.0);
         // Construct last: callbacks may run as soon as the board connects.
         board_ = std::make_unique<librmcs::board::CBoard>(*this, serial);
     }
@@ -101,6 +120,14 @@ public:
             "Motor test: enabled=%s; right switch DOWN=stop, MIDDLE=speed, UP=angle. Arm in DOWN "
             "with centered right stick.",
             enabled_ ? "true" : "false");
+        RCLCPP_INFO(
+            get_logger(),
+            "Speed PI: max=%.3f rad/s, kp=%.4f, ki=%.4f /s, I limit=%.3f, "
+            "torque limit=%.3f, reference acceleration=%.3f rad/s^2, filter=%.1f Hz, "
+            "feedback watchdog=%.1f ms",
+            max_velocity_, speed_config_.kp, speed_config_.ki, speed_config_.integral_limit,
+            speed_config_.output_limit, speed_config_.acceleration_limit, speed_cutoff_,
+            speed_feedback_timeout_ * 1000.0);
     }
 
     void update() override {
@@ -109,10 +136,17 @@ public:
             if (!std::isfinite(*update_rate_) || *update_rate_ <= 0)
                 throw std::invalid_argument("motor_test: invalid update rate");
             filter_.set_cutoff(cutoff_, *update_rate_);
+            speed_filter_.set_cutoff(speed_cutoff_, *update_rate_);
             filter_initialized_ = true;
         }
         const std::scoped_lock lock(mutex_);
         const auto now = Clock::now();
+        *control_period_ = tick_initialized_ ? elapsed(now, last_tick_) : 1.0 / *update_rate_;
+        tick_initialized_ = true;
+        last_tick_ = now;
+        // Avoid integrating an entire executor stall using a single held sample.
+        const double dt = std::clamp(*control_period_, 1e-6, 2.0 / *update_rate_);
+        *feedback_age_ = received_motor_ ? elapsed(now, motor_received_) : -1.0;
         const bool fresh = received_motor_ && elapsed(now, motor_received_) <= timeout_;
         const bool remote = received_remote_ && elapsed(now, remote_received_) <= remote_timeout_;
         *feedback_valid_ = fresh ? 1.0 : 0.0;
@@ -121,17 +155,43 @@ public:
         if (received_motor_)
             motor_.update_status();
         *joystick_ = dr16_.joystick_right().x();
-        if (fresh)
-            *filtered_velocity_ = filter_.update(motor_.velocity());
+        const auto sw = dr16_.switch_right();
+        if (fresh) {
+            const double angle_feedback = filter_.update(motor_.velocity());
+            const double speed_feedback = speed_filter_.update(motor_.velocity());
+            *filtered_velocity_ = sw == rmcs_msgs::Switch::MIDDLE ? speed_feedback : angle_feedback;
+        }
         if (!enabled_ || !fresh || !*remote_valid_) {
             armed_ = false;
             stop();
-            if (!fresh)
+            if (!fresh) {
                 filter_.reset();
+                speed_filter_.reset();
+            }
+            return;
+        }
+        if (*control_period_ > timeout_ || !std::isfinite(motor_.velocity())
+            || !std::isfinite(*filtered_velocity_) || !std::isfinite(*joystick_)) {
+            armed_ = false;
+            stop();
+            return;
+        }
+        // A valid frame within the general 100 ms timeout can still be too old
+        // for the speed loop. Never integrate through a long feedback gap.
+        // Latch off rather than resume torque automatically when USB recovers.
+        if (sw == rmcs_msgs::Switch::MIDDLE && *feedback_age_ > speed_feedback_timeout_) {
+            const bool was_armed = armed_;
+            armed_ = false;
+            stop();
+            if (was_armed)
+                RCLCPP_WARN(
+                    get_logger(),
+                    "Speed feedback gap %.1f ms exceeds %.1f ms: zero torque requested, "
+                    "PI reset. Re-arm in DOWN with centered stick after checking the link.",
+                    *feedback_age_ * 1000.0, speed_feedback_timeout_ * 1000.0);
             return;
         }
 
-        const auto sw = dr16_.switch_right();
         const double stick = *joystick_;
         if (sw == rmcs_msgs::Switch::DOWN) {
             stop();
@@ -155,19 +215,35 @@ public:
         const double axis =
             std::abs(stick) <= deadzone_
                 ? 0.0
-                : std::copysign((std::abs(stick) - deadzone_) / (1.0 - deadzone_), stick);
+                : std::copysign(
+                      std::min(1.0, (std::abs(stick) - deadzone_) / (1.0 - deadzone_)), stick);
         *target_angle_ = center_angle_;
         if (sw == rmcs_msgs::Switch::UP) {
             *target_angle_ = center_angle_ + axis * angle_range_;
             const auto error =
                 std::remainder(*target_angle_ - motor_.angle(), 2 * std::numbers::pi);
             *target_velocity_ = angle_pid_.update(error);
+            *requested_velocity_ = *target_velocity_;
+            *speed_p_ = *speed_i_ = 0.0;
             *mode_output_ = 2.0;
         } else {
-            *target_velocity_ = axis * max_velocity_;
+            *requested_velocity_ = axis * max_velocity_;
             *mode_output_ = 1.0;
+            *output_ = speed_controller_.update(*requested_velocity_, *filtered_velocity_, dt);
+            *target_velocity_ = speed_controller_.reference();
+            *speed_p_ = speed_controller_.proportional();
+            *speed_i_ = speed_controller_.integral();
+            *requested_torque_ = speed_controller_.unsaturated();
+            // The speed reference ramps; corrective torque is not rate-limited.
+            // Centered stick, mode changes and faults all clear the integral.
+            return;
         }
-        *output_ = velocity_pid_.update(*target_velocity_ - *filtered_velocity_);
+        const auto requested_output =
+            velocity_pid_.update(*target_velocity_ - *filtered_velocity_);
+        *requested_torque_ = requested_output;
+        const auto max_output_change = output_slew_rate_ / *update_rate_;
+        *output_ = std::clamp(
+            requested_output, *output_ - max_output_change, *output_ + max_output_change);
         if (!std::isfinite(*output_)) {
             armed_ = false;
             stop();
@@ -205,6 +281,7 @@ private:
         return std::chrono::duration<double>(now - then).count();
     }
     void stop() {
+        speed_controller_.reset();
         velocity_pid_.reset();
         angle_pid_.reset();
         last_mode_ = rmcs_msgs::Switch::UNKNOWN;
@@ -212,15 +289,16 @@ private:
         *target_velocity_ = 0.0;
         *target_angle_ = received_motor_ ? motor_.angle() : 0.0;
         *mode_output_ = 0.0;
+        *requested_velocity_ = *speed_p_ = *speed_i_ = *requested_torque_ = 0.0;
     }
     void send_command() {
         device::CanPacket8 packet{uint64_t{0}};
         packet << motor_;
         board_->start_transmit().can_transmit(
-            Spec::kCans.kCan2, {.can_id = motor_.send_id(), .can_data = packet.as_bytes()});
+            Spec::kCans.kCan1, {.can_id = motor_.send_id(), .can_data = packet.as_bytes()});
     }
     void can_receive_callback(const Spec::Can& can, const View::Can& data) override {
-        if (can != Spec::kCans.kCan2 || data.is_extended_can_id || data.is_remote_transmission
+        if (can != Spec::kCans.kCan1 || data.is_extended_can_id || data.is_remote_transmission
             || data.can_data.size() != 8)
             return;
         const std::scoped_lock lock(mutex_);
@@ -242,17 +320,26 @@ private:
     device::DjiMotor motor_;
     device::Dr16 dr16_;
     std::mutex mutex_;
-    Clock::time_point motor_received_{}, remote_received_{};
+    Clock::time_point motor_received_{}, remote_received_{}, last_tick_{};
+    bool tick_initialized_ = false;
     bool received_motor_ = false, received_remote_ = false;
     bool enabled_ = false, armed_ = false, filter_initialized_ = false;
     double max_velocity_, angle_range_, deadzone_, timeout_, remote_timeout_, cutoff_;
+    double output_slew_rate_ = 0.25;
+    double speed_cutoff_ = 30.0;
+    double speed_feedback_timeout_ = 0.02;
+    util::MotorTestSpeedController::Config speed_config_;
+    util::MotorTestSpeedController speed_controller_;
     double center_angle_ = 0.0;
     rmcs_msgs::Switch last_mode_ = rmcs_msgs::Switch::UNKNOWN;
     Pid velocity_pid_, angle_pid_;
     filter::LowPassFilter<> filter_{1.0};
+    filter::LowPassFilter<> speed_filter_{1.0};
     InputInterface<double> update_rate_;
     OutputInterface<double> output_, filtered_velocity_, target_velocity_, target_angle_;
     OutputInterface<double> joystick_, mode_output_, feedback_valid_, remote_valid_;
+    OutputInterface<double> requested_velocity_, speed_p_, speed_i_, requested_torque_;
+    OutputInterface<double> feedback_age_, control_period_;
     std::unique_ptr<librmcs::board::CBoard> board_;
 };
 

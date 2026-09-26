@@ -1,6 +1,6 @@
 rmcs_executor:
   ros__parameters:
-    update_rate: 1000.0
+    update_rate: 500.0            # Reduce USB submissions after observed transmit-pool exhaustion.
     components:
       - rmcs_core::hardware::MotorTest -> motor_test
       - rmcs_core::debug::ValueCollector -> motor_test_recorder
@@ -10,26 +10,34 @@ motor_test:
     # Optional serial filter. Leave empty only when this is the sole connected CBoard.
     board_serial: ""
     motor_id: 1
-    # Verify against your GM6020 firmware/protocol: voltage or current.
-    motor_command_mode: "voltage"
+    # Motor label says its current loop is enabled.
+    motor_command_mode: "current"
     reversed: false
-    # Start with feedback only. Set true and tune gains to drive the motor.
-    enabled: false
-    max_velocity: 1.0             # rad/s
-    angle_range: 0.5              # rad either side of angle-mode entry position
+    # Enable only for a brief, supervised low-torque bench test.
+    enabled: true
+    max_velocity: 3.0             # rad/s (~0.48 rev/s), speed-mode joystick full travel
+    speed_kp: 0.008               # N*m / (rad/s); modest correction for quantized feedback
+    speed_ki: 0.05                # N*m / (rad/s * s); fixed baseline while diagnosing feedback gaps
+    speed_output_limit: 0.09      # N*m; speed-mode ceiling after sustained stalls at 0.08
+    speed_integral_limit: 0.09    # N*m; integral contribution, with output anti-windup
+    speed_acceleration_limit: 6.0 # rad/s^2; smooth the reference, not the braking correction
+    speed_filter_cutoff: 30.0     # Hz; less feedback lag than the former 10 Hz speed filter
+    speed_feedback_timeout: 0.02 # seconds; latch speed mode off on stale feedback, then re-arm in DOWN
+    angle_range: 0.4              # rad either side of angle-mode entry position (~23 degrees)
     joystick_deadzone: 0.05
     feedback_timeout: 0.1         # seconds
     remote_timeout: 0.2           # seconds
-    velocity_filter_cutoff: 30.0  # Hz
-    # DjiMotor control_torque interface units; voltage mode is a scaled command,
-    # not a calibrated physical torque. No shared motors on this CAN command group.
-    output_limit: 0.05
-    # Gains are deliberately zero: tune on your hardware, speed loop first.
-    velocity_kp: 0.0
+    angle_max_velocity: 0.3       # rad/s; independent of speed-mode tuning
+    velocity_filter_cutoff: 10.0  # Hz; legacy angle-mode inner-loop filter
+    # DjiMotor's current-loop command is represented as torque by this interface.
+    output_limit: 0.08            # N*m; angle-mode torque ceiling, speed has a separate limit
+    output_slew_rate: 0.75        # N*m/s; angle mode only
+    # Legacy inner PID for angle mode only. Speed mode uses speed_kp/speed_ki above.
+    velocity_kp: 0.05
     velocity_ki: 0.0
     velocity_kd: 0.0
     velocity_integral_limit: 100.0
-    angle_kp: 0.0
+    angle_kp: 10.0                 # (rad/s)/rad; stronger outer-loop request, torque stays capped
     angle_ki: 0.0
     angle_kd: 0.0
     angle_integral_limit: 100.0
@@ -37,7 +45,7 @@ motor_test:
 motor_test_recorder:
   ros__parameters:
     csv_path: "/tmp/motor_test_<timestamp>.csv"
-    write_interval: 10
+    write_interval: 5            # Keep 100 Hz recording with a 500 Hz executor.
     flush_interval: 100
     signals:
       - /motor_test/motor/angle
@@ -46,7 +54,16 @@ motor_test_recorder:
       - /motor_test/target_velocity
       - /motor_test/target_angle
       - /motor_test/motor/control_torque
+      - /motor_test/motor/torque
+      - /motor_test/motor/max_torque
       - /motor_test/joystick
       - /motor_test/mode
       - /motor_test/feedback_valid
       - /motor_test/remote_valid
+      # Append fields: preserve the original first 13 CSV columns.
+      - /motor_test/requested_velocity
+      - /motor_test/speed_p_torque
+      - /motor_test/speed_i_torque
+      - /motor_test/requested_torque
+      - /motor_test/feedback_age
+      - /motor_test/control_period
