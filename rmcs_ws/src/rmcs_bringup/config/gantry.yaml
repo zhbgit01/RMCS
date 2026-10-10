@@ -1,0 +1,86 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 500.0
+    components:
+      - rmcs_core::hardware::Gantry -> gantry_hardware
+      - rmcs_core::controller::gantry::GantryController -> gantry_controller
+      - rmcs_core::debug::ValueCollector -> gantry_recorder
+
+gantry_hardware:
+  ros__parameters:
+    board_serial: "" # Only leave empty when this is the sole compatible board connected.
+    # All three motors use CAN1. Match these IDs to the actual C610 settings.
+    left_lift_motor_id: 2
+    right_lift_motor_id: 3
+    yaw_motor_id: 1
+    # Verify individually: positive feedback must mean physical upward/rightward motion.
+    left_lift_reversed: false
+    right_lift_reversed: false
+    yaw_reversed: false
+    feedback_timeout: 0.05
+    remote_timeout: 0.2
+
+gantry_controller:
+  ros__parameters:
+    enabled: false # Set true only after wiring, directions and mechanical setup are checked.
+    joystick_deadzone: 0.05
+    # Left stick x=lift, y=horizontal screw. Check physical stick signs with outputs disabled.
+    pitch_input_sign: 1.0
+    yaw_input_sign: 1.0
+    # Units: M2006 gearbox output-shaft radians, NOT physical Pitch/Yaw angles or mm.
+    lift_target_speed: 0.03
+    yaw_target_speed: 0.03
+    lift_max_velocity: 0.05
+    yaw_max_velocity: 0.05
+    # Relative to a manually confirmed, leveled position. These are provisional small windows.
+    lift_min_angle: -0.15
+    lift_max_angle: 0.15
+    yaw_min_angle: -0.15
+    yaw_max_angle: 0.15
+    sync_error_limit: 0.05
+    sync_kp: 1.0
+    lift_position_kp: 2.0
+    yaw_position_kp: 2.0
+    # Provisional P-only inner loops; these have NOT been tuned on the actual gantry.
+    lift_velocity_kp: 0.1
+    lift_velocity_ki: 0.0
+    lift_velocity_kd: 0.0
+    yaw_velocity_kp: 0.1
+    yaw_velocity_ki: 0.0
+    yaw_velocity_kd: 0.0
+    lift_integral_limit: 1.0
+    yaw_integral_limit: 1.0
+    lift_torque_limit: 0.1
+    yaw_torque_limit: 0.1
+    control_period_limit: 0.05
+
+gantry_recorder:
+  ros__parameters:
+    csv_path: "/tmp/gantry_<timestamp>.csv"
+    write_interval: 5
+    flush_interval: 100
+    signals:
+      - /gantry/stick_pitch
+      - /gantry/stick_yaw
+      - /gantry/left_lift/angle
+      - /gantry/right_lift/angle
+      - /gantry/yaw/angle
+      - /gantry/lift_target
+      - /gantry/yaw_target
+      - /gantry/sync_error
+      - /gantry/left_lift/relative_angle
+      - /gantry/right_lift/relative_angle
+      - /gantry/yaw/relative_angle
+      - /gantry/left_lift/velocity
+      - /gantry/right_lift/velocity
+      - /gantry/yaw/velocity
+      - /gantry/left_lift/control_torque
+      - /gantry/right_lift/control_torque
+      - /gantry/yaw/control_torque
+      - /gantry/left_lift/feedback_age
+      - /gantry/right_lift/feedback_age
+      - /gantry/yaw/feedback_age
+      - /gantry/remote_age
+      - /gantry/state
+      - /gantry/fault
+      - /gantry/control_period
