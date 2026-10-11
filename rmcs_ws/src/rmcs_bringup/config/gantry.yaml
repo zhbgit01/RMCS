@@ -60,27 +60,13 @@ gantry_recorder:
     write_interval: 5
     flush_interval: 100
     signals:
-      - /gantry/stick_pitch
-      - /gantry/stick_yaw
-      - /gantry/left_lift/angle
+      - /gantry/left_lift/angle #左升降电机角度
       - /gantry/right_lift/angle
       - /gantry/yaw/angle
-      - /gantry/lift_target
-      - /gantry/yaw_target
-      - /gantry/sync_error
-      - /gantry/left_lift/relative_angle
-      - /gantry/right_lift/relative_angle
-      - /gantry/yaw/relative_angle
-      - /gantry/left_lift/velocity
-      - /gantry/right_lift/velocity
-      - /gantry/yaw/velocity
-      - /gantry/left_lift/control_torque
-      - /gantry/right_lift/control_torque
-      - /gantry/yaw/control_torque
-      - /gantry/left_lift/feedback_age
+      - /gantry/sync_error #左右同步误差
+      - /gantry/left_lift/feedback_age #电机反馈距今时间
       - /gantry/right_lift/feedback_age
       - /gantry/yaw/feedback_age
-      - /gantry/remote_age
-      - /gantry/state
-      - /gantry/fault
-      - /gantry/control_period
+      - /gantry/remote_age #遥控器反馈距今时间
+      - /gantry/state #状态 停机／运行／故障
+      - /gantry/fault #故障编号

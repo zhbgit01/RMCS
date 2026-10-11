@@ -26,7 +26,8 @@ SDK 中 CBoard 和 RmcsBoardLite 是不同设备类型；此任务使用 CBoard�
 ## 摇杆、使能和相对零位
 
 左摇杆 x 为升降、y 为横向，对应 DR16 的通道 3 和负通道 2。
-`pitch_input_sign` 和 `yaw_input_sign` 可设置为 +1 或 -1。先看 CSV 中 stick 两列，
+`pitch_input_sign` 和 `yaw_input_sign` 可设置为 +1 或 -1。需要检查摇杆符号时，可临时在 YAML
+的 signals 中加入 `/gantry/stick_pitch` 和 `/gantry/stick_yaw`，
 核对上推及右推的符号，再调整符号；不要假定现有默认符号已符合现场需求。
 
 右拨杆 DOWN：请求零转矩；摇杆居中、通信正常、反馈在范围内时允许后续使能。
@@ -69,7 +70,9 @@ UP 下回中继续位置保持；斜推同时改变两个位置目标。
 位置或同步故障还需先排除机械问题，使反馈重新满足限值；不要通过重启掩盖歪斜。
 
 CSV 输出 `/tmp/gantry_<timestamp>.csv`，默认 500 Hz 更新、每 5 次记录一次。
-CSV 的 index 是序号；control_period 为控制周期秒数，feedback_age/remote_age 为收帧间隔秒数。
+精简 CSV 每行共 11 列：index、三个电机角度、同步误差、三个电机反馈年龄、遥控器反馈年龄、state、fault。
+index 是序号，feedback_age/remote_age 为距最后收帧的秒数。尚未采零时同步误差为初始值，不能表示机构已调平。
+目标、相对角度、速度、转矩、摇杆和控制周期仍保留为内部接口，需要调参时可加回 signals。
 这些接口是 RMCS 内部数据，不会自动变成 ROS 话题。
 
 ## 编译与现场调试顺序
