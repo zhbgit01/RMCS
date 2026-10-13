@@ -5,7 +5,7 @@
 #include <mutex>
 #include <vector>
 #include <cmath>
-#include <librmcs/board/rmcs_board_lite.hpp>
+#include <librmcs/board/c_board.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
 #include "hardware/device/dji_motor.hpp"
@@ -13,7 +13,7 @@
 
 namespace rmcs_core::hardware {
 class Gantry : public rmcs_executor::Component, public rclcpp::Node,
-               public librmcs::board::RmcsBoardLite::Callback {
+               public librmcs::board::CBoard::Callback {
     using Clock = std::chrono::steady_clock;
     static long long now_ms() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now().time_since_epoch()).count();
@@ -41,7 +41,8 @@ public:
         register_output("/remote/valid", remote_valid_, false);
         register_output("/remote/joystick/left", joystick_, Eigen::Vector2d::Zero());
         register_output("/remote/switch/right", enable_switch_, rmcs_msgs::Switch::UNKNOWN);
-        board_ = std::make_unique<librmcs::board::RmcsBoardLite>(*this, get_parameter("board_serial").as_string());
+        RCLCPP_INFO(get_logger(), "[gantry limits] final CAN torque limit=%.3f N.m", torque_limit_);
+        board_ = std::make_unique<librmcs::board::CBoard>(*this, get_parameter("board_serial").as_string());
     }
     void update() override {
         // Parse DR16 on the executor thread, avoiding cross-thread Dr16 state access.
@@ -59,6 +60,16 @@ public:
         *feedback_valid_ = fresh();
         for (int i = 0; i < 3; ++i)
             if (received_[i].load() != 0) motors_[i].update_status();
+        const auto now = now_ms();
+        if (now - last_diagnostic_ms_ >= 1000) {
+            last_diagnostic_ms_ = now;
+            std::array<long long, 3> age;
+            for (int i = 0; i < 3; ++i) {
+                const auto stamp = received_[i].load();
+                age[i] = stamp == 0 ? -1 : now - stamp;
+            }
+            RCLCPP_INFO(get_logger(), "[gantry CAN1] feedback age ms: id1=%lld id2=%lld id3=%lld (-1=never received)", age[0], age[1], age[2]);
+        }
     }
 private:
     bool fresh() const {
@@ -97,13 +108,14 @@ private:
     std::atomic<long long> remote_received_{0};
     std::mutex remote_mutex_;
     std::vector<std::byte> remote_packet_;
+    long long last_diagnostic_ms_ = 0;
     long long timeout_ms_;
     double torque_limit_;
     OutputInterface<bool> feedback_valid_, remote_valid_;
     OutputInterface<Eigen::Vector2d> joystick_;
     OutputInterface<rmcs_msgs::Switch> enable_switch_;
     // Destroy board first to stop callbacks before destroying devices/mutexes.
-    std::unique_ptr<librmcs::board::RmcsBoardLite> board_;
+    std::unique_ptr<librmcs::board::CBoard> board_;
 };
 }
 #include <pluginlib/class_list_macros.hpp>

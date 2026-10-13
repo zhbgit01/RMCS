@@ -59,8 +59,21 @@ public:
             if (out.active) *torques_[i] = pid_[i].update(out.velocity[i] - input.velocity[i]);
             else { pid_[i].reset(); *torques_[i] = 0.0; }
         }
+        if (now - last_diagnostic_ >= std::chrono::seconds(1)) {
+            last_diagnostic_ = now;
+            RCLCPP_INFO(get_logger(),
+                "[gantry] remote=%d feedback=%d switch=%u active=%d fault=%d stick(up,side)=(%.2f,%.2f) torque(yaw,left,right)=(%.3f,%.3f,%.3f) skew=%.3f",
+                static_cast<int>(*remote_valid_), static_cast<int>(*feedback_valid_),
+                static_cast<unsigned>(*switch_), static_cast<int>(out.active), static_cast<int>(out.fault),
+                input.pitch_stick, input.yaw_stick, *torques_[0], *torques_[1], *torques_[2], out.skew);
+            RCLCPP_INFO(get_logger(),
+                "[gantry motion yaw,left,right] target_rad=(%.3f,%.3f,%.3f) position_rad=(%.3f,%.3f,%.3f) velocity_target=(%.3f,%.3f,%.3f) velocity_actual=(%.3f,%.3f,%.3f)",
+                out.target[0], out.target[1], out.target[2], input.position[0], input.position[1], input.position[2],
+                out.velocity[0], out.velocity[1], out.velocity[2], input.velocity[0], input.velocity[1], input.velocity[2]);
+        }
     }
 private:
+    std::chrono::steady_clock::time_point last_diagnostic_{};
     GantryLogic logic_;
     pid::PidCalculator pid_[3];
     double pitch_sign_, yaw_sign_;

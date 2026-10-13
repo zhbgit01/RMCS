@@ -10,18 +10,19 @@ gantry_hardware:
   ros__parameters:
     board_serial: ""
     feedback_timeout_ms: 100
-    torque_limit: 0.15
+    torque_limit: 0.20
 
 gantry_controller:
   ros__parameters:
     deadzone: 0.08
     pitch_sign: 1.0
     yaw_sign: -1.0
-    lift_rate: 0.3
-    yaw_rate: 0.3
-    position_kp: 3.0
+    lift_rate: 1.0
+    yaw_rate: 1.0
+    # 0.2 rad tracking window * 6 = 1.2 rad/s; allows 1 rad/s tracking.
+    position_kp: 6.0
     sync_kp: 2.0
-    max_velocity: 0.5
+    max_velocity: 1.2
     max_skew: 0.3
-    velocity_kp: 0.2
-    torque_limit: 0.15
+    velocity_kp: 0.4
+    torque_limit: 0.20
