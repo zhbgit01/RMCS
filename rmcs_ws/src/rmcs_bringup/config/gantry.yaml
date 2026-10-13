@@ -1,28 +1,38 @@
-# All positions/rates refer to gearbox-output radians, not launcher angles.
+# 龙门架：CAN1 上 ID 1 为 Yaw，ID 2 为左升降，ID 3 为右升降。
+# 左摇杆上下控制升降、左右控制 Yaw；右拨杆上挡使能，中/下挡关闭输出。
+# 角度/速度均指 M2006 减速箱输出轴的 rad、rad/s，不是真实 Pitch/Yaw 角度。
+# 当前 10 rad/s 和位置增益 60 尚未验证；较大增益可能增加冲击和速度波动。
 rmcs_executor:
-  ros__parameters:
-    update_rate: 1000.0
-    components:
-      - rmcs_core::hardware::Gantry -> gantry_hardware
-      - rmcs_core::controller::gantry::GantryController -> gantry_controller
+  ros__parameters:  # ROS 参数块的固定写法
+    update_rate: 1000.0  # 控制循环频率，Hz；1000 表示约每 1 ms 更新一次
+    components:  # 加载组件；箭头右边为实例名，对应下面的参数块
+      - rmcs_core::hardware::Gantry -> gantry_hardware  # 板卡、CAN1、DR16 收发
+      - rmcs_core::controller::gantry::GantryController -> gantry_controller  # 目标、同步和 PID 控制
 
 gantry_hardware:
   ros__parameters:
-    board_serial: ""
-    feedback_timeout_ms: 100
-    torque_limit: 0.20
+    board_serial: ""  # 板卡序列号筛选；空字符串表示不指定序列号
+    feedback_timeout_ms: 100  # 任一电机反馈超时或未收到反馈，停止输出；单位 ms
+    torque_limit: 0.20  # CAN 发送前的最终力矩限幅，±N·m；与控制器限幅共同生效
 
 gantry_controller:
   ros__parameters:
-    deadzone: 0.08
-    pitch_sign: 1.0
-    yaw_sign: -1.0
-    lift_rate: 1.0
-    yaw_rate: 1.0
-    # 0.2 rad tracking window * 6 = 1.2 rad/s; allows 1 rad/s tracking.
-    position_kp: 6.0
-    sync_kp: 2.0
-    max_velocity: 1.2
-    max_skew: 0.3
-    velocity_kp: 0.4
-    torque_limit: 0.20
+    deadzone: 0.08  # 摇杆幅度 <= 8% 时视为回中；死区外重新缩放到 0～1
+    pitch_sign: 1.0  # 上下输入方向，只允许 +1 或 -1；运动方向相反时改符号
+    yaw_sign: -1.0  # 左右输入方向，只允许 +1 或 -1；运动方向相反时改符号
+    lift_rate: 10.0  # 上下推满时共同升降目标的变化率，rad/s；回中停止更新目标
+    yaw_rate: 10.0  # 左右推满时横向目标的变化率，rad/s；不等于真实 Yaw 角速度
+    # 位置外环：目标速度 = position_kp × 位置误差，再加左右同步修正。
+    # 代码限制目标领先实际位置约 0.2 rad；当前 60 × 0.2 = 12 rad/s，随后仍受 max_velocity 限制。
+    position_kp: 60.0  # 位置追赶强度，单位 1/s；增大可减小滞后，也可能增加抖动
+    sync_kp: 2.0  # 同步修正增益，单位 1/s；左侧走得多时减慢左侧、加快右侧
+    max_velocity: 10.0  # 三台电机目标速度限幅，±rad/s；不是实际速度的硬限制
+    max_skew: 0.3  # 两侧相对转角差阈值，rad；超限停机，恢复需关闭再使能
+    # 同步差以每次使能时的位置为参考，不能检测初始歪斜；两侧初始应齐平。
+    # 速度内环目前只有 P：力矩 = velocity_kp × (目标速度 - 实际速度)。
+    velocity_kp: 0.4  # 速度纠偏强度，N·m/(rad/s)；增大增强驱动/制动，也可能放大波动
+    torque_limit: 0.20  # 控制器力矩限幅，±N·m；最终输出还受硬件部分的同名参数限制
+
+# 仅改 YAML 后停止并重新启动程序生效，不会自动更新运行中的参数。
+# 当前没有绝对行程限位或机械耦合补偿；保持升降电机位置不能证明真实 Pitch 恒定。
+# 要改速度的话改max_velocity、lift_rate、yaw_rate，position_kp的参数保证position_kp × 位置误差（当前是0.2） < max_velocity。
