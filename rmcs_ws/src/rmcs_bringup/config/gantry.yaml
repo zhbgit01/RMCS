@@ -1,0 +1,27 @@
+# All positions/rates refer to gearbox-output radians, not launcher angles.
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::hardware::Gantry -> gantry_hardware
+      - rmcs_core::controller::gantry::GantryController -> gantry_controller
+
+gantry_hardware:
+  ros__parameters:
+    board_serial: ""
+    feedback_timeout_ms: 100
+    torque_limit: 0.15
+
+gantry_controller:
+  ros__parameters:
+    deadzone: 0.08
+    pitch_sign: 1.0
+    yaw_sign: -1.0
+    lift_rate: 0.3
+    yaw_rate: 0.3
+    position_kp: 3.0
+    sync_kp: 2.0
+    max_velocity: 0.5
+    max_skew: 0.3
+    velocity_kp: 0.2
+    torque_limit: 0.15

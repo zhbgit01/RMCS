@@ -67,6 +67,9 @@ build-rmcs
 ```
 
 将会运行 `.script/build-rmcs` 脚本，在路径 `rmcs_ws` 下开始构建代码。
+默认逐包构建，包内也只使用一个编译任务，以降低内存峰值。
+内存充足时可使用 `RMCS_BUILD_JOBS=2 build-rmcs` 增加包内并行数（允许 1–64）。
+保护模式拒绝 `--executor` 和 `--parallel-workers` 覆盖。单个任务仍可能耗尽内存。
 
 构建完毕后，基于 `clangd` 的 `C++` 代码提示将可用。此时可以正常编写代码。
 
@@ -295,3 +298,7 @@ build-rmcs && wait-sync && attach-remote -r
 ```
 
 可以触发 RMCS 构建，`wait-sync` 等待文件同步完成，接下来重启 RMCS 守护进程后，显示实时输出。
+
+## 龙门架控制
+
+参见 [最简龙门架控制与无硬件测试](docs/zh-cn/gantry_control.md)。

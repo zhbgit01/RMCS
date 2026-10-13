@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /opt/ros/jazzy/setup.bash
+source /opt/ros/jazzy/setup.bash || exit 1
 
 : "${RMCS_PATH:=/workspaces/RMCS}"
 
@@ -48,7 +48,26 @@ if [[ "${RMCS_USE_LLVM}" == "ON" ]]; then
     )
 fi
 
+# One package at a time; bound parallel compilation inside each package too.
+: "${RMCS_BUILD_JOBS:=1}"
+if [[ ! "$RMCS_BUILD_JOBS" =~ ^[1-9][0-9]*$ ]] || (( ${#RMCS_BUILD_JOBS} > 3 )) || (( RMCS_BUILD_JOBS > 64 )); then
+    echo "> ERROR: RMCS_BUILD_JOBS must be an integer between 1 and 64"
+    exit 1
+fi
+# Reject executor overrides so the protection cannot be accidentally bypassed.
+for arg in "$@"; do
+    case "$arg" in
+        --executor|--executor=*|--parallel-workers|--parallel-workers=*)
+            echo "> ERROR: protected build uses --executor sequential; use RMCS_BUILD_JOBS for compilation jobs"
+            exit 1 ;;
+    esac
+done
+export CMAKE_BUILD_PARALLEL_LEVEL="$RMCS_BUILD_JOBS"
+export MAKEFLAGS="-j$RMCS_BUILD_JOBS"
+echo "> Protected build: one package, $RMCS_BUILD_JOBS compilation job(s)"
+
 colcon_args=(
+    --executor sequential
     --symlink-install --merge-install
     "${event_handlers_args[@]}"
 )
