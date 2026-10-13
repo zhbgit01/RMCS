@@ -68,6 +68,17 @@ build-rmcs
 
 将会运行 `.script/build-rmcs` 脚本，在路径 `rmcs_ws` 下开始构建代码。
 
+为降低编译时的内存峰值，默认按顺序构建各个包，每个包只使用一个编译任务。
+如果内存充足，可以通过 `RMCS_BUILD_JOBS` 增加包内并行数，例如：
+
+```bash
+RMCS_BUILD_JOBS=2 build-rmcs
+```
+
+脚本会据此设置 `CMAKE_BUILD_PARALLEL_LEVEL` 和 `MAKEFLAGS` 的并行数。
+如需同时构建多个包，可显式传入 `--executor parallel --parallel-workers 2`；
+包间和包内并行会叠加，增加内存占用。限制并行数不能保证单个编译任务不会耗尽内存。
+
 构建完毕后，基于 `clangd` 的 `C++` 代码提示将可用。此时可以正常编写代码。
 
 Note: 用于开发的所有脚本均位于 `.script` 中，参见 开发脚本手册(TODO)。

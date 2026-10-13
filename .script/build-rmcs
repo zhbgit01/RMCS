@@ -11,6 +11,20 @@ fi
 
 cd "${RMCS_PATH}"/rmcs_ws || exit 1
 
+# 限制开发机器上的编译内存占用。这里设置每个包内的并行任务数，
+# 包之间的并行数量由 colcon 的执行器控制。
+: "${RMCS_BUILD_JOBS:=1}"
+if [[ ! "${RMCS_BUILD_JOBS}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "> ERROR: RMCS_BUILD_JOBS must be a positive integer."
+    exit 1
+fi
+
+# MAKEFLAGS 同时阻止 colcon 根据 CPU 核数自动添加 -j 参数。
+# CMAKE_BUILD_PARALLEL_LEVEL 对 Make 和 Ninja 生成器均生效。
+export CMAKE_BUILD_PARALLEL_LEVEL="${RMCS_BUILD_JOBS}"
+export MAKEFLAGS="${MAKEFLAGS:+${MAKEFLAGS} }-j${RMCS_BUILD_JOBS}"
+echo "> Build jobs per package: ${RMCS_BUILD_JOBS} (default executor: sequential)"
+
 [[ -x /opt/cmake/bin/cmake ]] &&
     export PATH="/opt/cmake/bin:$PATH"
 
@@ -50,6 +64,7 @@ fi
 
 colcon_args=(
     --symlink-install --merge-install
+    --executor sequential
     "${event_handlers_args[@]}"
 )
 cmake_args=(
