@@ -59,8 +59,8 @@ value_collector:
       - /gimbal/yaw/velocity    #Yaw电机编码器测出来的速度
       - /gimbal/yaw/velocity_imu    #IMU测到的云台实际旋转速度
       - /gimbal/yaw/control_angle_error    #目标角度和当前角度的误差
-      - /gimbal/yaw/control_torque    #角度环 PID 输出的目标速度
-      - /gimbal/yaw/torque    #速度PID最终输出给电机的目标力矩
+      - /gimbal/yaw/control_torque    #速度环 PID 输出叠加前馈后的目标力矩
+      - /gimbal/yaw/torque    #电机反馈电流换算得到的力矩
     write_interval: 5
     flush_interval: 1000
 
@@ -128,7 +128,7 @@ deformable_infantry:
     chassis_radius: 0.2341741
     rod_length: 0.140
     yaw_motor_zero_point: 38910
-    pitch_motor_zero_point: 32214
+    pitch_motor_zero_point: 6921
 
 chassis_controller:
   ros__parameters:
