@@ -33,6 +33,7 @@ public:
         , wireless_charging_speed_limit_(get_parameter_or("wireless_charging_speed_limit", 0.2))
         , wireless_charging_angular_velocity_limit_(
               get_parameter_or("wireless_charging_angular_velocity_limit", 3.0))
+        , always_disabled_(get_parameter_or("always_disabled", false))
         , joint_mode_mgr_(*this) {
 
         following_velocity_controller_.output_max = angular_velocity_max_;
@@ -84,6 +85,8 @@ public:
         *symmetric_posture_target_ = true;
         *correction_inverted_ = false;
         chassis_control_velocity_->vector << nan_, nan_, nan_;
+        if (always_disabled_)
+            reset_all_controls();
     }
 
     void before_updating() override {
@@ -101,6 +104,13 @@ public:
 
     void update() override {
         using rmcs_msgs::Switch;
+
+        // Use the same disable path as both switches DOWN, in every remote mode.
+        // Incrementing reset_count also keeps downstream suspension targets disabled.
+        if (always_disabled_) {
+            reset_all_controls();
+            return;
+        }
 
         const auto switch_right = *switch_right_;
         const auto switch_left = *switch_left_;
@@ -385,6 +395,7 @@ private:
 
     double wireless_charging_speed_limit_;
     double wireless_charging_angular_velocity_limit_;
+    bool always_disabled_;
 
     DeformableChassisModeManager joint_mode_mgr_;
 };

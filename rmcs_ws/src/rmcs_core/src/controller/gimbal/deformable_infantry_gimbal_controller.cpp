@@ -24,6 +24,11 @@ public:
               get_component_name(),
               rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
 
+        get_parameter_or("yaw_control_enabled", yaw_control_enabled_, true);
+        if (yaw_control_enabled_)
+            register_output("/gimbal/yaw/control_torque", output_.yaw_control_torque, kNaN);
+        get_parameter_or("identification_hold", identification_hold_, false);
+
         configure_pid("yaw_angle", yaw_angle_pid_);
         configure_pid("yaw_velocity", yaw_velocity_pid_);
         configure_pid("pitch_angle", pitch_angle_pid_);
@@ -64,11 +69,11 @@ public:
             deactivate_ctrl_hold();
         }
 
-        const auto auto_aim_active = auto_aim_requested() && input_.auto_aim_should_control.ready()
-                                  && *input_.auto_aim_should_control
-                                  && input_.auto_aim_control_direction.ready()
-                                  && input_.auto_aim_control_direction->allFinite()
-                                  && !input_.auto_aim_control_direction->isZero();
+        const auto auto_aim_active =
+            !identification_hold_ && auto_aim_requested() && input_.auto_aim_should_control.ready()
+            && *input_.auto_aim_should_control && input_.auto_aim_control_direction.ready()
+            && input_.auto_aim_control_direction->allFinite()
+            && !input_.auto_aim_control_direction->isZero();
         const auto angle_error =
             auto_aim_active ? update_auto_aim_control() : update_manual_control();
 
@@ -78,13 +83,16 @@ public:
 
         const auto trajectory_ff = trajectory_feedforward(auto_aim_active);
 
-        if (!std::isfinite(angle_error.yaw_angle_error)) {
+        if (!yaw_control_enabled_) {
+            yaw_angle_pid_.reset();
+            yaw_velocity_pid_.reset();
+        } else if (!std::isfinite(angle_error.yaw_angle_error)) {
             yaw_angle_pid_.reset();
             yaw_velocity_pid_.reset();
             *output_.yaw_control_torque = kNaN;
         } else {
-            const auto yaw_velocity_ref = yaw_angle_pid_.update(angle_error.yaw_angle_error)
-                                        + trajectory_ff.yaw_ref_velocity;
+            const auto yaw_velocity_ref =
+                yaw_angle_pid_.update(angle_error.yaw_angle_error) + trajectory_ff.yaw_ref_velocity;
             *output_.yaw_control_torque =
                 yaw_velocity_pid_.update(yaw_velocity_ref - *input_.yaw_velocity_imu)
                 + trajectory_ff.yaw_velocity + trajectory_ff.yaw_acceleration;
@@ -171,7 +179,6 @@ private:
 
     struct Output {
         explicit Output(rmcs_executor::Component& component) {
-            component.register_output("/gimbal/yaw/control_torque", yaw_control_torque, kNaN);
             component.register_output("/gimbal/yaw/control_angle", yaw_control_angle, kNaN);
             component.register_output(
                 "/gimbal/pitch/control_velocity", pitch_control_velocity, kNaN);
@@ -200,6 +207,8 @@ private:
     }
 
     auto manual_yaw_shift() const -> double {
+        if (identification_hold_)
+            return 0.0;
         return joystick_sensitivity_ * input_.joystick_left->y()
              + mouse_sensitivity_ * input_.mouse_velocity->y();
     }
@@ -220,8 +229,10 @@ private:
 
         const auto yaw_shift = manual_yaw_shift();
 
-        const auto pitch_shift = -joystick_sensitivity_ * input_.joystick_left->x()
-                               + mouse_sensitivity_ * input_.mouse_velocity->x();
+        const auto pitch_shift = identification_hold_
+                                   ? 0.0
+                                   : -joystick_sensitivity_ * input_.joystick_left->x()
+                                         + mouse_sensitivity_ * input_.mouse_velocity->x();
         return gimbal_solver_.update(TwoAxisGimbalSolver::SetControlShift{yaw_shift, pitch_shift});
     }
 
@@ -324,7 +335,8 @@ private:
         yaw_velocity_pid_.reset();
         pitch_angle_pid_.reset();
         pitch_velocity_pid_.reset();
-        *output_.yaw_control_torque = kNaN;
+        if (yaw_control_enabled_)
+            *output_.yaw_control_torque = kNaN;
         *output_.yaw_control_angle = kNaN;
         *output_.pitch_control_velocity = kNaN;
         *output_.pitch_control_torque = kNaN;
@@ -369,6 +381,8 @@ private:
     double joystick_sensitivity_ = 0.003;
     double mouse_sensitivity_ = 0.5;
     bool pitch_torque_control_enabled_ = false;
+    bool identification_hold_ = false;
+    bool yaw_control_enabled_ = true;
     double ctrl_hold_pitch_target_angle_ = 0.0;
     double pitch_gravity_ff_gain_ = 0.0;
     double pitch_gravity_ff_phase_ = 0.0;

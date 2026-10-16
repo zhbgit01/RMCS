@@ -177,6 +177,21 @@ public:
             configure_pid_limits(*this, "velocity", velocity_pid_);
         }
 
+        direct_torque_test_ = parameter_or_declare(*this, "direct_torque_test", false);
+        if (direct_torque_test_) {
+            if (pid_enabled_ || dc_offset_ != 0.0)
+                throw std::runtime_error("direct_torque_test requires pid=false and dc_offset=0");
+            torque_limit_ = require_parameter<double>(*this, "torque_limit");
+            velocity_limit_ = require_parameter<double>(*this, "velocity_limit");
+            for (double value : {torque_limit_, velocity_limit_})
+                if (!std::isfinite(value) || value <= 0)
+                    throw std::runtime_error("Identification limits must be finite and positive");
+            if (std::abs(amplitude_) > torque_limit_)
+                throw std::runtime_error("Require amplitude <= torque_limit");
+            register_output(target_ + "/sweep/active", active_output_, 0.0);
+            register_output(target_ + "/sweep/fault", fault_output_, 0.0);
+        }
+
         register_input("/predefined/update_count", update_count_);
         register_input("/predefined/timestamp", timestamp_);
         register_input("/remote/switch/left", switch_left_);
@@ -200,6 +215,11 @@ public:
     }
 
     void update() override {
+        if (direct_torque_test_) {
+            update_direct_torque_test();
+            return;
+        }
+
         const auto current_switch_left = *switch_left_;
         const auto current_switch_right = *switch_right_;
         const bool is_enabled = controller_enabled(current_switch_left, current_switch_right);
@@ -236,6 +256,48 @@ public:
 private:
     static constexpr double nan_ = std::numeric_limits<double>::quiet_NaN();
 
+    // Direct test owns the motor output. Outside the test it never holds position.
+    void update_direct_torque_test() {
+        using rmcs_msgs::Switch;
+        const auto left = *switch_left_;
+        const auto right = *switch_right_;
+        *control_torque_ = nan_;
+        if (left == Switch::DOWN && right == Switch::DOWN)
+            fault_latched_ = false;
+        *fault_output_ = fault_latched_ ? 1.0 : 0.0;
+
+        if (left != Switch::MIDDLE || right != Switch::UP || fault_latched_) {
+            finish_sweep();
+            store_switch_state(left, right);
+            return;
+        }
+
+        if (should_start_sweep(left, right))
+            start_sweep();
+        if (sweep_active_) {
+            if (!std::isfinite(*measured_angle_) || !std::isfinite(*measured_velocity_)
+                || !std::isfinite(*measured_torque_)
+                || std::abs(*measured_velocity_) > velocity_limit_) {
+                fault_latched_ = true;
+                *fault_output_ = 1.0;
+                finish_sweep();
+                RCLCPP_ERROR(get_logger(), "Direct torque sweep protection; both DOWN to reset");
+            } else {
+                bool finished = false;
+                const double excitation = calculate_sweep_output(finished);
+                if (finished) {
+                    // No position hold or automatic return after the experiment.
+                    log_sample(0.0, 0.0, nan_);
+                    finish_sweep();
+                } else {
+                    *control_torque_ = std::clamp(excitation, -torque_limit_, torque_limit_);
+                    log_sample(0.0, excitation, *control_torque_);
+                }
+            }
+        }
+        store_switch_state(left, right);
+    }
+
     bool should_start_sweep(
         rmcs_msgs::Switch current_switch_left, rmcs_msgs::Switch current_switch_right) const {
         using rmcs_msgs::Switch;
@@ -267,9 +329,14 @@ private:
         const auto path = build_csv_path();
         try {
             csv_writer_.open(path);
-            csv_writer_.write_row(
-                "update_count", "elapsed_s", "pid_output", "sweep_output", control_torque_name_,
-                measured_torque_name_, measured_velocity_name_, measured_angle_name_);
+            if (direct_torque_test_)
+                csv_writer_.write_row(
+                    "update_count", "elapsed_s", control_torque_name_, measured_torque_name_,
+                    measured_velocity_name_, measured_angle_name_);
+            else
+                csv_writer_.write_row(
+                    "update_count", "elapsed_s", "pid_output", "sweep_output", control_torque_name_,
+                    measured_torque_name_, measured_velocity_name_, measured_angle_name_);
         } catch (const std::exception& exception) {
             const auto path_string = path.string();
             RCLCPP_ERROR(
@@ -279,6 +346,8 @@ private:
         }
 
         sweep_active_ = true;
+        if (direct_torque_test_)
+            *active_output_ = 1.0;
         sweep_start_time_ = *timestamp_;
         next_flush_time_ =
             sweep_start_time_ + std::chrono::duration_cast<Clock::duration>(kFlushInterval);
@@ -302,6 +371,8 @@ private:
 
         current_csv_path_.clear();
         sweep_active_ = false;
+        if (direct_torque_test_)
+            *active_output_ = 0.0;
     }
 
     double calculate_sweep_output(bool& sweep_finished) const {
@@ -317,9 +388,14 @@ private:
         const double elapsed_s =
             std::max(0.0, std::chrono::duration<double>(*timestamp_ - sweep_start_time_).count());
 
-        csv_writer_.write_row(
-            *update_count_, elapsed_s, pid_output, sweep_output, control_output, *measured_torque_,
-            *measured_velocity_, *measured_angle_);
+        if (direct_torque_test_) {
+            csv_writer_.write_row(
+                *update_count_, elapsed_s, control_output, *measured_torque_, *measured_velocity_,
+                *measured_angle_);
+        } else
+            csv_writer_.write_row(
+                *update_count_, elapsed_s, pid_output, sweep_output, control_output,
+                *measured_torque_, *measured_velocity_, *measured_angle_);
 
         if (*timestamp_ >= next_flush_time_) {
             csv_writer_.flush();
@@ -332,9 +408,19 @@ private:
     std::filesystem::path build_csv_path() const {
         const auto file_name = std::string{"swept_frequency_controller_"}
                              + sanitize_file_component(target_) + "_sweep_"
-                             + std::to_string(*update_count_) + ".csv";
+                             + std::to_string(*update_count_) + "_"
+                             + std::to_string(
+                                   std::chrono::duration_cast<std::chrono::microseconds>(
+                                       std::chrono::system_clock::now().time_since_epoch())
+                                       .count())
+                             + ".csv";
         return std::filesystem::path{"/tmp"} / file_name;
     }
+
+    bool direct_torque_test_ = false;
+    bool fault_latched_ = false;
+    double torque_limit_ = 0.0, velocity_limit_ = 0.0;
+    OutputInterface<double> active_output_, fault_output_;
 
     const std::string target_;
     const bool sweep_enabled_;

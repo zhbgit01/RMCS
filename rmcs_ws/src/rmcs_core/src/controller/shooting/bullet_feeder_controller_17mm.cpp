@@ -16,6 +16,8 @@ public:
               get_component_name(),
               rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
 
+        get_parameter_or("always_disabled", always_disabled_, false);
+
         double bullets_per_feeder_turn = get_parameter("bullets_per_feeder_turn").as_double();
         double bullet_feeder_angle_per_bullet = 2 * std::numbers::pi / bullets_per_feeder_turn;
 
@@ -76,7 +78,7 @@ public:
         using namespace rmcs_msgs;
         const bool current_should_shoot = *should_shoot_;
 
-        if ((switch_left == Switch::UNKNOWN || switch_right == Switch::UNKNOWN)
+        if (always_disabled_ || (switch_left == Switch::UNKNOWN || switch_right == Switch::UNKNOWN)
             || (switch_left == Switch::DOWN && switch_right == Switch::DOWN)) {
             reset_all_controls();
         } else {
@@ -213,6 +215,7 @@ private:
     InputInterface<bool> bullet_fired_;
     InputInterface<int64_t> control_bullet_allowance_limited_by_heat_;
 
+    bool always_disabled_ = false;
     InputInterface<rmcs_msgs::Switch> switch_right_;
     InputInterface<rmcs_msgs::Switch> switch_left_;
     InputInterface<rmcs_msgs::Mouse> mouse_;

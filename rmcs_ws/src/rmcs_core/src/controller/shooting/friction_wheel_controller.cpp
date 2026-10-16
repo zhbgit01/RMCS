@@ -28,6 +28,8 @@ public:
               rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
 
+        get_parameter_or("always_disabled", always_disabled_, false);
+
         register_input("/remote/switch/right", switch_right_);
         register_input("/remote/switch/left", switch_left_);
         register_input("/remote/keyboard", keyboard_);
@@ -100,7 +102,7 @@ public:
 
         last_knob_up_ = knob_up;
 
-        if ((switch_left == Switch::UNKNOWN || switch_right == Switch::UNKNOWN)
+        if (always_disabled_ || (switch_left == Switch::UNKNOWN || switch_right == Switch::UNKNOWN)
             || (switch_left == Switch::DOWN && switch_right == Switch::DOWN)) {
             reset_all_controls();
             return;
@@ -277,6 +279,7 @@ private:
 
     rclcpp::Logger logger_;
 
+    bool always_disabled_ = false;
     InputInterface<rmcs_msgs::Switch> switch_right_;
     InputInterface<rmcs_msgs::Switch> switch_left_;
     InputInterface<rmcs_msgs::Keyboard> keyboard_;

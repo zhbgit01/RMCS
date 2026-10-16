@@ -12,6 +12,7 @@ rmcs_executor:
       - rmcs_core::referee::app::ui::DeformableInfantry -> referee_ui_infantry
 
       - rmcs_core::controller::gimbal::DeformableInfantryGimbalController -> gimbal_controller
+      - rmcs_core::controller::identification::SweptFrequencyController -> yaw_swept_frequency_controller
 
       - rmcs_core::controller::shooting::FrictionWheelController -> friction_wheel_controller
       - rmcs_core::controller::shooting::HeatController -> heat_controller
@@ -53,16 +54,18 @@ rmcs_executor:
 
 value_collector:
   ros__parameters:
-    csv_path: "/tmp/yaw_<timestamp>.csv"
+    csv_path: "/tmp/yaw_sweep_monitor_<timestamp>.csv"
     signals:
+      - /gimbal/yaw/sweep/active
+      - /gimbal/yaw/sweep/fault
+      - /chassis/yaw/velocity_imu
       - /gimbal/yaw/angle    #云台当前实际角度
       - /gimbal/yaw/velocity    #Yaw电机编码器测出来的速度
       - /gimbal/yaw/velocity_imu    #IMU测到的云台实际旋转速度
-      - /gimbal/yaw/control_angle_error    #目标角度和当前角度的误差
-      - /gimbal/yaw/control_torque    #速度环 PID 输出叠加前馈后的目标力矩
+      - /gimbal/yaw/control_torque    #直接扫频目标力矩，测试外为 NaN
       - /gimbal/yaw/torque    #电机反馈电流换算得到的力矩
     write_interval: 5
-    flush_interval: 1000
+    flush_interval: 200
 
 value_broadcaster:
   ros__parameters:
@@ -132,6 +135,8 @@ deformable_infantry:
 
 chassis_controller:
   ros__parameters:
+    # Keep wheels and suspension disabled in every remote mode during yaw identification.
+    always_disabled: true
     min_angle: 8.0
     max_angle: 59.0
     active_suspension_enable: true
@@ -186,6 +191,8 @@ deformable_suspension:
 
 gimbal_controller:
   ros__parameters:
+    yaw_control_enabled: false  # Sweep controller exclusively owns yaw torque.
+    identification_hold: true
     upper_limit: -0.60 # -27 deg
     lower_limit: 0.10 # 8 deg
     ctrl_hold_pitch_target_angle: 0.0
@@ -225,6 +232,7 @@ gimbal_controller:
 
 friction_wheel_controller:
   ros__parameters:
+    always_disabled: true
     friction_wheels:
       - /gimbal/left_friction
       - /gimbal/right_friction
@@ -243,6 +251,7 @@ heat_controller:
 
 bullet_feeder_controller:
   ros__parameters:
+    always_disabled: true
     bullets_per_feeder_turn: 8.0
     shot_frequency: 15.0
     safe_shot_frequency: 10.0
@@ -380,3 +389,20 @@ rf_joint_controller:
     u_max: 200.0
     output_min: -200.0
     output_max: 200.0
+
+# Direct torque test: no yaw PID, feedforward, position hold, or automatic return.
+# DR16: both MIDDLE -> left MIDDLE/right UP. Leave this position to cancel.
+yaw_swept_frequency_controller:
+  ros__parameters:
+    target: /gimbal/yaw
+    direct_torque_test: true
+    sweep: true
+    pid: false  # No yaw holding PID during or outside the test.
+    dc_offset: 0.0
+    logarithmic: true
+    start_freq: 0.5
+    end_freq: 1.5
+    duration: 60.0
+    amplitude: 0.8  # N m, direct sinusoidal torque sweep.
+    torque_limit: 0.8  # N m, direct torque command limit.
+    velocity_limit: 1.5707963267948966  # 90 deg/s, encoder velocity.
