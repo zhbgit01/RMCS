@@ -1,7 +1,10 @@
 #include "controller/gimbal/two_axis_gimbal_solver.hpp"
 #include "controller/pid/pid_calculator.hpp"
+#include "yaw_pid_test.hpp"
 
 #include <cmath>
+#include <chrono>
+#include <stdexcept>
 #include <limits>
 #include <string>
 
@@ -29,6 +32,16 @@ public:
             register_output("/gimbal/yaw/control_torque", output_.yaw_control_torque, kNaN);
         get_parameter_or("identification_hold", identification_hold_, false);
 
+        get_parameter_or("yaw_pid_test_enabled", yaw_pid_test_enabled_, false);
+        get_parameter_or("yaw_pid_test_torque_limit", yaw_pid_test_torque_limit_, 3.0);
+        if (yaw_pid_test_enabled_) {
+            register_input("/predefined/timestamp", test_timestamp_);
+            register_input("/gimbal/yaw/angle", test_yaw_angle_);
+            register_input("/gimbal/yaw/velocity", test_yaw_velocity_);
+            if (!yaw_control_enabled_ || !std::isfinite(yaw_pid_test_torque_limit_)
+                || yaw_pid_test_torque_limit_ <= 0)
+                throw std::runtime_error("Invalid yaw PID test configuration");
+        }
         configure_pid("yaw_angle", yaw_angle_pid_);
         configure_pid("yaw_velocity", yaw_velocity_pid_);
         configure_pid("pitch_angle", pitch_angle_pid_);
@@ -53,15 +66,54 @@ public:
         const auto switch_right = *input_.switch_right;
         const auto switch_left = *input_.switch_left;
         const auto keyboard = *input_.keyboard;
+        double test_dt = update_dt();
+        if (yaw_pid_test_enabled_) {
+            if (test_last_time_.has_value())
+                test_dt = std::chrono::duration<double>(*test_timestamp_ - *test_last_time_).count();
+            test_last_time_ = *test_timestamp_;
+        }
 
         using namespace rmcs_msgs;
         if ((switch_left == Switch::UNKNOWN || switch_right == Switch::UNKNOWN)
             || (switch_left == Switch::DOWN && switch_right == Switch::DOWN)) {
+            if (yaw_pid_test_enabled_) {
+                test_gate_.update(switch_left == Switch::DOWN && switch_right == Switch::DOWN,
+                                  false, false, false, test_dt);
+                publish_test_status();
+            }
             reset_all_controls();
             return;
         }
 
-        update_pitch_lock_state(switch_left, switch_right, keyboard);
+        if (yaw_pid_test_enabled_) {
+            const bool run = switch_left == Switch::MIDDLE && switch_right == Switch::UP;
+            const bool was_active = test_gate_.active;
+            const bool healthy = std::isfinite(*test_yaw_angle_)
+                && std::isfinite(*test_yaw_velocity_) && std::isfinite(*input_.yaw_velocity_imu)
+                && std::isfinite(*input_.pitch_angle) && std::isfinite(*input_.pitch_velocity_imu)
+                && std::abs(*test_yaw_velocity_) < std::numbers::pi / 2
+                && std::abs(*input_.yaw_velocity_imu) < std::numbers::pi / 2
+                && (!was_active || std::abs(std::remainder(*test_yaw_angle_ - test_start_angle_,
+                       2 * std::numbers::pi)) < 25 * std::numbers::pi / 180);
+            test_gate_.update(false, switch_left == Switch::MIDDLE
+                && switch_right == Switch::MIDDLE, run, healthy, test_dt);
+            if (!test_gate_.active) {
+                reset_all_controls();
+                publish_test_status();
+                return;
+            }
+            if (!was_active) {
+                test_start_angle_ = *test_yaw_angle_;
+                test_previous_offset_ = 0;
+                gimbal_solver_.update(TwoAxisGimbalSolver::SetDisabled{});
+                yaw_angle_pid_.reset();
+                yaw_velocity_pid_.reset();
+            }
+            publish_test_status();
+        }
+
+        if (!yaw_pid_test_enabled_)
+            update_pitch_lock_state(switch_left, switch_right, keyboard);
 
         if (ctrl_hold_requested()) {
             update_ctrl_hold_control();
@@ -70,12 +122,13 @@ public:
         }
 
         const auto auto_aim_active =
-            !identification_hold_ && auto_aim_requested() && input_.auto_aim_should_control.ready()
+            !yaw_pid_test_enabled_ && !identification_hold_ && auto_aim_requested() && input_.auto_aim_should_control.ready()
             && *input_.auto_aim_should_control && input_.auto_aim_control_direction.ready()
             && input_.auto_aim_control_direction->allFinite()
             && !input_.auto_aim_control_direction->isZero();
         const auto angle_error =
-            auto_aim_active ? update_auto_aim_control() : update_manual_control();
+            yaw_pid_test_enabled_ ? update_test_control()
+                            : auto_aim_active ? update_auto_aim_control() : update_manual_control();
 
         *output_.yaw_angle_error = angle_error.yaw_angle_error;
         if (!ctrl_hold_active_)
@@ -93,9 +146,23 @@ public:
         } else {
             const auto yaw_velocity_ref =
                 yaw_angle_pid_.update(angle_error.yaw_angle_error) + trajectory_ff.yaw_ref_velocity;
+            *output_.yaw_control_velocity = yaw_velocity_ref;
             *output_.yaw_control_torque =
                 yaw_velocity_pid_.update(yaw_velocity_ref - *input_.yaw_velocity_imu)
                 + trajectory_ff.yaw_velocity + trajectory_ff.yaw_acceleration;
+        }
+
+        if (yaw_pid_test_enabled_) {
+            if (!std::isfinite(*output_.yaw_control_torque)
+                || !std::isfinite(angle_error.pitch_angle_error)) {
+                test_gate_.fault = true;
+                test_gate_.active = false;
+                reset_all_controls();
+                publish_test_status();
+                return;
+            }
+            *output_.yaw_control_torque = std::clamp(*output_.yaw_control_torque,
+                -yaw_pid_test_torque_limit_, yaw_pid_test_torque_limit_);
         }
 
         if (!ctrl_hold_active_) {
@@ -179,6 +246,13 @@ private:
 
     struct Output {
         explicit Output(rmcs_executor::Component& component) {
+            component.register_output("/gimbal/yaw/control_velocity", yaw_control_velocity, kNaN);
+            component.register_output("/gimbal/yaw/pid_test/time", test_time, 0.0);
+            component.register_output("/gimbal/yaw/pid_test/stage", test_stage, -1.0);
+            component.register_output("/gimbal/yaw/pid_test/offset", test_offset, 0.0);
+            component.register_output("/gimbal/yaw/pid_test/active", test_active, 0.0);
+            component.register_output("/gimbal/yaw/pid_test/fault", test_fault, 0.0);
+            component.register_output("/gimbal/yaw/pid_test/done", test_done, 0.0);
             component.register_output("/gimbal/yaw/control_angle", yaw_control_angle, kNaN);
             component.register_output(
                 "/gimbal/pitch/control_velocity", pitch_control_velocity, kNaN);
@@ -188,6 +262,8 @@ private:
             component.register_output("/gimbal/pitch/control_angle_error", pitch_angle_error, kNaN);
         }
 
+        OutputInterface<double> yaw_control_velocity;
+        OutputInterface<double> test_time, test_stage, test_offset, test_active, test_fault, test_done;
         OutputInterface<double> yaw_control_torque;
         OutputInterface<double> yaw_control_angle;
         OutputInterface<double> pitch_control_velocity;
@@ -196,6 +272,23 @@ private:
         OutputInterface<double> yaw_angle_error;
         OutputInterface<double> pitch_angle_error;
     } output_{*this};
+
+    void publish_test_status() {
+        *output_.test_time = test_gate_.elapsed;
+        *output_.test_stage = test_gate_.active ? yaw_pid_test_target(test_gate_.elapsed).stage : -1;
+        *output_.test_offset = test_gate_.active ? yaw_pid_test_target(test_gate_.elapsed).offset : 0;
+        *output_.test_active = test_gate_.active;
+        *output_.test_fault = test_gate_.fault;
+        *output_.test_done = test_gate_.done;
+    }
+
+    auto update_test_control() -> TwoAxisGimbalSolver::AngleError {
+        const auto target = yaw_pid_test_target(test_gate_.elapsed);
+        const auto error = gimbal_solver_.update(TwoAxisGimbalSolver::SetControlShift{
+            target.offset - test_previous_offset_, 0.0});
+        test_previous_offset_ = target.offset;
+        return error;
+    }
 
     auto ctrl_hold_requested() const -> bool { return pitch_lock_active_; }
 
@@ -331,6 +424,7 @@ private:
     }
 
     auto reset_control_outputs() -> void {
+        *output_.yaw_control_velocity = kNaN;
         yaw_angle_pid_.reset();
         yaw_velocity_pid_.reset();
         pitch_angle_pid_.reset();
@@ -378,6 +472,13 @@ private:
         get_parameter("pitch_velocity_kd").as_double(),
     };
 
+    bool yaw_pid_test_enabled_ = false;
+    double yaw_pid_test_torque_limit_ = 3.0;
+    YawPidTestGate test_gate_;
+    InputInterface<std::chrono::steady_clock::time_point> test_timestamp_;
+    std::optional<std::chrono::steady_clock::time_point> test_last_time_;
+    InputInterface<double> test_yaw_angle_, test_yaw_velocity_;
+    double test_start_angle_ = 0, test_previous_offset_ = 0;
     double joystick_sensitivity_ = 0.003;
     double mouse_sensitivity_ = 0.5;
     bool pitch_torque_control_enabled_ = false;

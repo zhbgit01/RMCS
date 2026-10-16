@@ -41,13 +41,22 @@ target_link_libraries(${PROJECT_NAME} librmcs-sdk)
 pluginlib_export_plugin_description_file(rmcs_executor plugins.xml)
 
 if(BUILD_TESTING)
+    add_executable(yaw_pid_profile_test test/yaw_pid_profile.cpp)
+    target_compile_options(yaw_pid_profile_test PRIVATE -UNDEBUG)
+    add_test(NAME yaw_pid_profile COMMAND yaw_pid_profile_test)
     find_package(fmt REQUIRED)
+    ament_auto_add_executable(yaw_pid_baseline_test test/yaw_pid_baseline.cpp)
+    target_link_libraries(yaw_pid_baseline_test fmt::fmt)
+    target_compile_options(yaw_pid_baseline_test PRIVATE -UNDEBUG)
+    add_test(NAME yaw_pid_baseline COMMAND yaw_pid_baseline_test --ros-args --params-file
+        ${PROJECT_SOURCE_DIR}/../rmcs_bringup/config/deformable-infantry-omni-c.yaml)
+    set_tests_properties(yaw_pid_baseline PROPERTIES ENVIRONMENT "ROS_LOG_DIR=/tmp/rmcs-pid-test-logs")
     ament_auto_add_executable(direct_yaw_sweep_test test/direct_yaw_sweep.cpp)
     target_link_libraries(direct_yaw_sweep_test fmt::fmt)
     target_compile_options(direct_yaw_sweep_test PRIVATE -UNDEBUG)
     add_test(NAME direct_yaw_sweep COMMAND direct_yaw_sweep_test
         --ros-args --params-file
-        ${PROJECT_SOURCE_DIR}/../rmcs_bringup/config/deformable-infantry-omni-c.yaml)
+        ${PROJECT_SOURCE_DIR}/test/direct_yaw_sweep.yaml)
     set_tests_properties(direct_yaw_sweep PROPERTIES ENVIRONMENT "ROS_LOG_DIR=/tmp/rmcs-sweep-test-logs")
 endif()
 
