@@ -1,0 +1,139 @@
+{
+  "source_csv": "yaw-pid-kp11/yaw_pid_monitor_2026-10-16_08-25-54.csv",
+  "discarded_truncated_final_row": true,
+  "sha256": "ffca8bc929aeaee9fe278b92826db889fff9636863180b87ccd7789078d3a436",
+  "config_note": "Supplied config must match the deployed configuration at capture time.",
+  "torque_limit_Nm_assumed": 3.0,
+  "runs": [
+    {
+      "run": 1,
+      "complete": true,
+      "fault_near_exit": false,
+      "finite": true,
+      "last_time_s": 56.0,
+      "max_logged_interval_s": 0.009000000000000341,
+      "phases": {
+        "hold": {
+          "error_rmse_deg": 0.01952006213763459,
+          "error_peak_deg": 0.032387184214903456,
+          "error_mean_deg": -0.01801845283006932,
+          "velocity_std_deg_s": 0.649046971811442,
+          "torque_peak_Nm": 0.517395,
+          "torque_rms_Nm": 0.178641427256582,
+          "torque_at_3Nm_fraction": 0.0
+        },
+        "steps": {
+          "error_rmse_deg": 0.8143095367218612,
+          "error_peak_deg": 4.2924737504051995,
+          "error_mean_deg": -0.00598162319776492,
+          "velocity_std_deg_s": 8.846905259809187,
+          "torque_peak_Nm": 3.0,
+          "torque_rms_Nm": 0.8024515524494065,
+          "torque_at_3Nm_fraction": 0.043759116482600544
+        },
+        "ramps": {
+          "error_rmse_deg": 0.6975160511136308,
+          "error_peak_deg": 1.1281309803007857,
+          "error_mean_deg": -0.0032365362196207868,
+          "velocity_std_deg_s": 6.944514299256113,
+          "torque_peak_Nm": 1.5896,
+          "torque_rms_Nm": 0.3265811355599798,
+          "torque_at_3Nm_fraction": 0.0
+        },
+        "sine": {
+          "error_rmse_deg": 1.0958620492587605,
+          "error_peak_deg": 1.5907428336673637,
+          "error_mean_deg": -0.022057405495845693,
+          "velocity_std_deg_s": 10.707852806609717,
+          "torque_peak_Nm": 1.53787,
+          "torque_rms_Nm": 0.44753627533146817,
+          "torque_at_3Nm_fraction": 0.0
+        },
+        "final_hold": {
+          "error_rmse_deg": 0.0768384160969891,
+          "error_peak_deg": 1.4707654713669693,
+          "error_mean_deg": -0.0011527517577189783,
+          "velocity_std_deg_s": 1.1824922727139362,
+          "torque_peak_Nm": 1.35924,
+          "torque_rms_Nm": 0.18130733161796314,
+          "torque_at_3Nm_fraction": 0.0
+        }
+      },
+      "steps": [
+        {
+          "start_s": 3.002,
+          "target_offset_deg": 5.000002142878398,
+          "settling_time_within_0_2deg_s": 0.3650000000000002,
+          "last_0_5s_mean_error_deg": -0.026994429430949433
+        },
+        {
+          "start_s": 5.002,
+          "target_offset_deg": 0.0,
+          "settling_time_within_0_2deg_s": 0.41999999999999993,
+          "last_0_5s_mean_error_deg": -0.016795675162620875
+        },
+        {
+          "start_s": 7.002,
+          "target_offset_deg": -5.000002142878398,
+          "settling_time_within_0_2deg_s": 0.3550000000000004,
+          "last_0_5s_mean_error_deg": -0.012866217430267028
+        },
+        {
+          "start_s": 9.004,
+          "target_offset_deg": 0.0,
+          "settling_time_within_0_2deg_s": 0.4150000000000009,
+          "last_0_5s_mean_error_deg": -0.03480212133420253
+        },
+        {
+          "start_s": 11.005,
+          "target_offset_deg": 5.000002142878398,
+          "settling_time_within_0_2deg_s": 0.375,
+          "last_0_5s_mean_error_deg": -0.04669428697042191
+        },
+        {
+          "start_s": 13.005,
+          "target_offset_deg": 0.0,
+          "settling_time_within_0_2deg_s": 0.36499999999999844,
+          "last_0_5s_mean_error_deg": -0.007781405166897452
+        },
+        {
+          "start_s": 15.005,
+          "target_offset_deg": -5.000002142878398,
+          "settling_time_within_0_2deg_s": 0.34999999999999964,
+          "last_0_5s_mean_error_deg": -0.00622247893487193
+        },
+        {
+          "start_s": 17.005,
+          "target_offset_deg": 0.0,
+          "settling_time_within_0_2deg_s": 0.3500000000000014,
+          "last_0_5s_mean_error_deg": -0.048322218338888424
+        },
+        {
+          "start_s": 19.0,
+          "target_offset_deg": 5.000002142878398,
+          "settling_time_within_0_2deg_s": 0.41499999999999915,
+          "last_0_5s_mean_error_deg": -0.03267874314915738
+        },
+        {
+          "start_s": 21.0,
+          "target_offset_deg": 0.0,
+          "settling_time_within_0_2deg_s": 0.370000000000001,
+          "last_0_5s_mean_error_deg": -0.006513887762692801
+        },
+        {
+          "start_s": 23.0,
+          "target_offset_deg": -5.000002142878398,
+          "settling_time_within_0_2deg_s": 0.41499999999999915,
+          "last_0_5s_mean_error_deg": -0.006583774576232782
+        },
+        {
+          "start_s": 25.0,
+          "target_offset_deg": 0.0,
+          "settling_time_within_0_2deg_s": 0.3550000000000004,
+          "last_0_5s_mean_error_deg": -0.05115733207174939
+        }
+      ],
+      "valid_for_comparison": true
+    }
+  ]
+}

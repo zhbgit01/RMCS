@@ -2,6 +2,7 @@
 """Summarize complete 56 s yaw PID tests from ValueCollector CSV (angles in radians)."""
 import argparse
 import hashlib
+import io
 import json
 import shutil
 from pathlib import Path
@@ -10,7 +11,13 @@ import numpy as np
 
 
 def analyze(csv_path, config, output):
-    data = np.genfromtxt(csv_path, delimiter=',', names=True, deletechars='', encoding='utf-8')
+    lines = csv_path.read_text().splitlines()
+    expected_columns = len(lines[0].split(','))
+    truncated_tail = bool(lines and len(lines[-1].split(',')) != expected_columns)
+    if truncated_tail:
+        lines.pop()  # A service stop may interrupt the final CSV write.
+    data = np.genfromtxt(io.StringIO('\n'.join(lines)), delimiter=',', names=True,
+                         deletechars='', encoding='utf-8')
     data = np.atleast_1d(data)
     def col(name):
         return data['/gimbal/yaw/' + name]
@@ -72,7 +79,7 @@ def analyze(csv_path, config, output):
         summaries.append(result)
     output.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(config, output / 'config.yaml')
-    report = {'source_csv': str(csv_path), 'sha256': hashlib.sha256(csv_path.read_bytes()).hexdigest(),
+    report = {'source_csv': str(csv_path), 'discarded_truncated_final_row': truncated_tail, 'sha256': hashlib.sha256(csv_path.read_bytes()).hexdigest(),
               'config_note': 'Supplied config must match the deployed configuration at capture time.',
               'torque_limit_Nm_assumed': 3.0, 'runs': summaries}
     (output / 'summary.json').write_text(json.dumps(report, indent=2, allow_nan=False) + '\n')
