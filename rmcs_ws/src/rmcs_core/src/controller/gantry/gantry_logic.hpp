@@ -52,7 +52,7 @@ public:
         if (active_) {
             const double left = in.position[1] - origin_[1];
             const double right = in.position[2] - origin_[2];
-            out.skew = left - right;
+            out.skew = left - right;                           //防止运动过程中歪斜+超差停机保护
             if (std::abs(out.skew) > config_.max_skew) {
                 active_ = armed_ = false;
                 out.fault = true;

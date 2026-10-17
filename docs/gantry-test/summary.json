@@ -1,0 +1,22 @@
+[
+  {
+    "segment": 1,
+    "samples": 9,
+    "start_timestamp": 1792222659.8117337,
+    "end_timestamp": 1792222667.8117604,
+    "max_abs_logged_skew_rad": 0.008,
+    "mean_abs_logged_skew_rad": 0.0032222222222222222,
+    "fault_samples": 0,
+    "displacement_reference": "Each side subtracts its own first measured position in this excerpt."
+  },
+  {
+    "segment": 2,
+    "samples": 8,
+    "start_timestamp": 1792222687.811693,
+    "end_timestamp": 1792222694.8117452,
+    "max_abs_logged_skew_rad": 0.011,
+    "mean_abs_logged_skew_rad": 0.00425,
+    "fault_samples": 0,
+    "displacement_reference": "Each side subtracts its own first measured position in this excerpt."
+  }
+]

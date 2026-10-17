@@ -1,0 +1,306 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1080" viewBox="0 0 1300 1080">
+<rect width="100%" height="100%" fill="#f5f7fb"/>
+<style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#233047} .small{font-size:12px} .tick{font-size:11px;fill:#526176}</style>
+<text x="40" y="42" font-size="27" font-weight="bold">Gantry ascent under unilateral disturbance</text>
+<text x="40" y="68" font-size="14" >Operator reports: right-side resistance first, left-side resistance later. Exact contact times were not logged.</text>
+<text x="40" y="91" font-size="14" >Encoder evidence only: relative screw motion stays close; physical tilt was not measured.</text>
+<line x1="43" y1="119" x2="70" y2="119" stroke="#1269b0" stroke-width="3" stroke-dasharray=""/>
+<text x="78" y="124" font-size="13" >Left / ID 2</text>
+<line x1="209" y1="119" x2="236" y2="119" stroke="#e17920" stroke-width="3" stroke-dasharray="6 3"/>
+<text x="244" y="124" font-size="13" >Right / ID 3</text>
+<text x="450" y="124" font-size="13" >Markers = logged samples (~1 Hz); straight lines connect samples.</text>
+<rect x="40" y="145" width="610" height="835" rx="12" fill="white" stroke="#dce3ed"/>
+<text x="56" y="174" font-size="16" font-weight="bold">A | Earlier ascent - right-side resistance reported</text>
+<text x="56" y="196" font-size="12" >Unix timestamps 1792222659–1792222667</text>
+<text x="56" y="219" font-size="14" >Max sampled |skew|: 0.008 rad   |   Fault samples: 0</text>
+<text x="56" y="255" font-size="14" font-weight="bold">1. Measured displacement from excerpt start (rad)</text>
+<line x1="108" y1="431.0731707317073" x2="624" y2="431.0731707317073" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="435.0731707317073" font-size="11" text-anchor="end">0</text>
+<line x1="108" y1="391.8048780487805" x2="624" y2="391.8048780487805" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="395.8048780487805" font-size="11" text-anchor="end">20</text>
+<line x1="108" y1="352.5365853658536" x2="624" y2="352.5365853658536" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="356.5365853658536" font-size="11" text-anchor="end">40</text>
+<line x1="108" y1="313.2682926829268" x2="624" y2="313.2682926829268" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="317.2682926829268" font-size="11" text-anchor="end">60</text>
+<line x1="108" y1="274.0" x2="624" y2="274.0" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="278.0" font-size="11" text-anchor="end">80</text>
+<line x1="108.0" y1="274" x2="108.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="108.0" y="452" font-size="11" text-anchor="middle">0</text>
+<line x1="165.33333333333331" y1="274" x2="165.33333333333331" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="165.33333333333331" y="452" font-size="11" text-anchor="middle">1</text>
+<line x1="222.66666666666666" y1="274" x2="222.66666666666666" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="222.66666666666666" y="452" font-size="11" text-anchor="middle">2</text>
+<line x1="280.0" y1="274" x2="280.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="280.0" y="452" font-size="11" text-anchor="middle">3</text>
+<line x1="337.3333333333333" y1="274" x2="337.3333333333333" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="337.3333333333333" y="452" font-size="11" text-anchor="middle">4</text>
+<line x1="394.6666666666667" y1="274" x2="394.6666666666667" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="394.6666666666667" y="452" font-size="11" text-anchor="middle">5</text>
+<line x1="452.0" y1="274" x2="452.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="452.0" y="452" font-size="11" text-anchor="middle">6</text>
+<line x1="509.3333333333333" y1="274" x2="509.3333333333333" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="509.3333333333333" y="452" font-size="11" text-anchor="middle">7</text>
+<line x1="566.6666666666666" y1="274" x2="566.6666666666666" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="566.6666666666666" y="452" font-size="11" text-anchor="middle">8</text>
+<line x1="624.0" y1="274" x2="624.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="624.0" y="452" font-size="11" text-anchor="middle">9</text>
+<text x="366.0" y="470" font-size="11" text-anchor="middle">Seconds since excerpt start</text>
+<polyline points="108.00,431.07 165.33,411.45 222.67,391.80 280.00,372.17 337.33,352.87 394.67,333.29 452.00,313.65 509.33,295.37 566.67,285.17" fill="none" stroke="#1269b0" stroke-width="2.2" stroke-dasharray=""/>
+<circle cx="108.00" cy="431.07" r="3" fill="#1269b0"><title>t=0.000s, value=0.0000</title></circle>
+<circle cx="165.33" cy="411.45" r="3" fill="#1269b0"><title>t=1.000s, value=9.9960</title></circle>
+<circle cx="222.67" cy="391.80" r="3" fill="#1269b0"><title>t=2.000s, value=20.0000</title></circle>
+<circle cx="280.00" cy="372.17" r="3" fill="#1269b0"><title>t=3.000s, value=30.0010</title></circle>
+<circle cx="337.33" cy="352.87" r="3" fill="#1269b0"><title>t=4.000s, value=39.8290</title></circle>
+<circle cx="394.67" cy="333.29" r="3" fill="#1269b0"><title>t=5.000s, value=49.8050</title></circle>
+<circle cx="452.00" cy="313.65" r="3" fill="#1269b0"><title>t=6.000s, value=59.8070</title></circle>
+<circle cx="509.33" cy="295.37" r="3" fill="#1269b0"><title>t=7.000s, value=69.1170</title></circle>
+<circle cx="566.67" cy="285.17" r="3" fill="#1269b0"><title>t=8.000s, value=74.3120</title></circle>
+<polyline points="108.00,431.07 165.33,411.44 222.67,391.80 280.00,372.16 337.33,352.88 394.67,333.27 452.00,313.66 509.33,295.36 566.67,285.16" fill="none" stroke="#e17920" stroke-width="2.2" stroke-dasharray="6 3"/>
+<circle cx="108.00" cy="431.07" r="3" fill="#e17920"><title>t=0.000s, value=0.0000</title></circle>
+<circle cx="165.33" cy="411.44" r="3" fill="#e17920"><title>t=1.000s, value=9.9980</title></circle>
+<circle cx="222.67" cy="391.80" r="3" fill="#e17920"><title>t=2.000s, value=20.0040</title></circle>
+<circle cx="280.00" cy="372.16" r="3" fill="#e17920"><title>t=3.000s, value=30.0060</title></circle>
+<circle cx="337.33" cy="352.88" r="3" fill="#e17920"><title>t=4.000s, value=39.8260</title></circle>
+<circle cx="394.67" cy="333.27" r="3" fill="#e17920"><title>t=5.000s, value=49.8140</title></circle>
+<circle cx="452.00" cy="313.66" r="3" fill="#e17920"><title>t=6.000s, value=59.8030</title></circle>
+<circle cx="509.33" cy="295.36" r="3" fill="#e17920"><title>t=7.000s, value=69.1200</title></circle>
+<circle cx="566.67" cy="285.16" r="3" fill="#e17920"><title>t=8.000s, value=74.3140</title></circle>
+<text x="108" y="481" font-size="11" >Each side uses its own starting position; overlap shows matched travel.</text>
+<text x="56" y="509" font-size="14" font-weight="bold">2. Controller torque commands (N m)</text>
+<line x1="108" y1="680.0555555555555" x2="624" y2="680.0555555555555" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="684.0555555555555" font-size="11" text-anchor="end">-0.4</text>
+<line x1="108" y1="644.2777777777778" x2="624" y2="644.2777777777778" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="648.2777777777778" font-size="11" text-anchor="end">-0.2</text>
+<line x1="108" y1="608.5" x2="624" y2="608.5" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="612.5" font-size="11" text-anchor="end">0</text>
+<line x1="108" y1="572.7222222222222" x2="624" y2="572.7222222222222" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="576.7222222222222" font-size="11" text-anchor="end">0.2</text>
+<line x1="108" y1="536.9444444444445" x2="624" y2="536.9444444444445" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="540.9444444444445" font-size="11" text-anchor="end">0.4</text>
+<line x1="108.0" y1="528" x2="108.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="108.0" y="706" font-size="11" text-anchor="middle">0</text>
+<line x1="165.33333333333331" y1="528" x2="165.33333333333331" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="165.33333333333331" y="706" font-size="11" text-anchor="middle">1</text>
+<line x1="222.66666666666666" y1="528" x2="222.66666666666666" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="222.66666666666666" y="706" font-size="11" text-anchor="middle">2</text>
+<line x1="280.0" y1="528" x2="280.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="280.0" y="706" font-size="11" text-anchor="middle">3</text>
+<line x1="337.3333333333333" y1="528" x2="337.3333333333333" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="337.3333333333333" y="706" font-size="11" text-anchor="middle">4</text>
+<line x1="394.6666666666667" y1="528" x2="394.6666666666667" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="394.6666666666667" y="706" font-size="11" text-anchor="middle">5</text>
+<line x1="452.0" y1="528" x2="452.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="452.0" y="706" font-size="11" text-anchor="middle">6</text>
+<line x1="509.3333333333333" y1="528" x2="509.3333333333333" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="509.3333333333333" y="706" font-size="11" text-anchor="middle">7</text>
+<line x1="566.6666666666666" y1="528" x2="566.6666666666666" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="566.6666666666666" y="706" font-size="11" text-anchor="middle">8</text>
+<line x1="624.0" y1="528" x2="624.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="624.0" y="706" font-size="11" text-anchor="middle">9</text>
+<text x="366.0" y="724" font-size="11" text-anchor="middle">Seconds since excerpt start</text>
+<polyline points="108.00,536.94 165.33,536.94 222.67,619.41 280.00,617.62 337.33,631.22 394.67,573.08 452.00,581.49 509.33,595.80 566.67,589.72" fill="none" stroke="#1269b0" stroke-width="2.2" stroke-dasharray=""/>
+<circle cx="108.00" cy="536.94" r="3" fill="#1269b0"><title>t=0.000s, value=0.4000</title></circle>
+<circle cx="165.33" cy="536.94" r="3" fill="#1269b0"><title>t=1.000s, value=0.4000</title></circle>
+<circle cx="222.67" cy="619.41" r="3" fill="#1269b0"><title>t=2.000s, value=-0.0610</title></circle>
+<circle cx="280.00" cy="617.62" r="3" fill="#1269b0"><title>t=3.000s, value=-0.0510</title></circle>
+<circle cx="337.33" cy="631.22" r="3" fill="#1269b0"><title>t=4.000s, value=-0.1270</title></circle>
+<circle cx="394.67" cy="573.08" r="3" fill="#1269b0"><title>t=5.000s, value=0.1980</title></circle>
+<circle cx="452.00" cy="581.49" r="3" fill="#1269b0"><title>t=6.000s, value=0.1510</title></circle>
+<circle cx="509.33" cy="595.80" r="3" fill="#1269b0"><title>t=7.000s, value=0.0710</title></circle>
+<circle cx="566.67" cy="589.72" r="3" fill="#1269b0"><title>t=8.000s, value=0.1050</title></circle>
+<polyline points="108.00,601.70 165.33,595.08 222.67,645.89 280.00,588.64 337.33,574.51 394.67,616.73 452.00,537.66 509.33,540.16 566.67,596.51" fill="none" stroke="#e17920" stroke-width="2.2" stroke-dasharray="6 3"/>
+<circle cx="108.00" cy="601.70" r="3" fill="#e17920"><title>t=0.000s, value=0.0380</title></circle>
+<circle cx="165.33" cy="595.08" r="3" fill="#e17920"><title>t=1.000s, value=0.0750</title></circle>
+<circle cx="222.67" cy="645.89" r="3" fill="#e17920"><title>t=2.000s, value=-0.2090</title></circle>
+<circle cx="280.00" cy="588.64" r="3" fill="#e17920"><title>t=3.000s, value=0.1110</title></circle>
+<circle cx="337.33" cy="574.51" r="3" fill="#e17920"><title>t=4.000s, value=0.1900</title></circle>
+<circle cx="394.67" cy="616.73" r="3" fill="#e17920"><title>t=5.000s, value=-0.0460</title></circle>
+<circle cx="452.00" cy="537.66" r="3" fill="#e17920"><title>t=6.000s, value=0.3960</title></circle>
+<circle cx="509.33" cy="540.16" r="3" fill="#e17920"><title>t=7.000s, value=0.3820</title></circle>
+<circle cx="566.67" cy="596.51" r="3" fill="#e17920"><title>t=8.000s, value=0.0670</title></circle>
+<text x="108" y="735" font-size="11" >Example t=6.0s: left +0.151, right +0.396 N m</text>
+<text x="56" y="763" font-size="14" font-weight="bold">3. Logged relative displacement difference: left - right (rad)</text>
+<line x1="108" y1="916.1666666666666" x2="624" y2="916.1666666666666" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="920.1666666666666" font-size="11" text-anchor="end">-0.01</text>
+<line x1="108" y1="862.5" x2="624" y2="862.5" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="866.5" font-size="11" text-anchor="end">0</text>
+<line x1="108" y1="808.8333333333333" x2="624" y2="808.8333333333333" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="99" y="812.8333333333333" font-size="11" text-anchor="end">0.01</text>
+<line x1="108.0" y1="782" x2="108.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="108.0" y="960" font-size="11" text-anchor="middle">0</text>
+<line x1="165.33333333333331" y1="782" x2="165.33333333333331" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="165.33333333333331" y="960" font-size="11" text-anchor="middle">1</text>
+<line x1="222.66666666666666" y1="782" x2="222.66666666666666" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="222.66666666666666" y="960" font-size="11" text-anchor="middle">2</text>
+<line x1="280.0" y1="782" x2="280.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="280.0" y="960" font-size="11" text-anchor="middle">3</text>
+<line x1="337.3333333333333" y1="782" x2="337.3333333333333" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="337.3333333333333" y="960" font-size="11" text-anchor="middle">4</text>
+<line x1="394.6666666666667" y1="782" x2="394.6666666666667" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="394.6666666666667" y="960" font-size="11" text-anchor="middle">5</text>
+<line x1="452.0" y1="782" x2="452.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="452.0" y="960" font-size="11" text-anchor="middle">6</text>
+<line x1="509.3333333333333" y1="782" x2="509.3333333333333" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="509.3333333333333" y="960" font-size="11" text-anchor="middle">7</text>
+<line x1="566.6666666666666" y1="782" x2="566.6666666666666" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="566.6666666666666" y="960" font-size="11" text-anchor="middle">8</text>
+<line x1="624.0" y1="782" x2="624.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="624.0" y="960" font-size="11" text-anchor="middle">9</text>
+<text x="366.0" y="978" font-size="11" text-anchor="middle">Seconds since excerpt start</text>
+<polyline points="108.00,862.50 165.33,873.23 222.67,883.97 280.00,889.33 337.33,846.40 394.67,905.43 452.00,841.03 509.33,873.23 566.67,867.87" fill="none" stroke="#7750a3" stroke-width="2.2" stroke-dasharray=""/>
+<circle cx="108.00" cy="862.50" r="3" fill="#7750a3"><title>t=0.000s, value=0.0000</title></circle>
+<circle cx="165.33" cy="873.23" r="3" fill="#7750a3"><title>t=1.000s, value=-0.0020</title></circle>
+<circle cx="222.67" cy="883.97" r="3" fill="#7750a3"><title>t=2.000s, value=-0.0040</title></circle>
+<circle cx="280.00" cy="889.33" r="3" fill="#7750a3"><title>t=3.000s, value=-0.0050</title></circle>
+<circle cx="337.33" cy="846.40" r="3" fill="#7750a3"><title>t=4.000s, value=0.0030</title></circle>
+<circle cx="394.67" cy="905.43" r="3" fill="#7750a3"><title>t=5.000s, value=-0.0080</title></circle>
+<circle cx="452.00" cy="841.03" r="3" fill="#7750a3"><title>t=6.000s, value=0.0040</title></circle>
+<circle cx="509.33" cy="873.23" r="3" fill="#7750a3"><title>t=7.000s, value=-0.0020</title></circle>
+<circle cx="566.67" cy="867.87" r="3" fill="#7750a3"><title>t=8.000s, value=-0.0010</title></circle>
+<rect x="680" y="145" width="610" height="835" rx="12" fill="white" stroke="#dce3ed"/>
+<text x="696" y="174" font-size="16" font-weight="bold">B | Later ascent - left-side resistance reported</text>
+<text x="696" y="196" font-size="12" >Unix timestamps 1792222687–1792222694</text>
+<text x="696" y="219" font-size="14" >Max sampled |skew|: 0.011 rad   |   Fault samples: 0</text>
+<text x="696" y="255" font-size="14" font-weight="bold">1. Measured displacement from excerpt start (rad)</text>
+<line x1="748" y1="431.0731707317073" x2="1264" y2="431.0731707317073" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="435.0731707317073" font-size="11" text-anchor="end">0</text>
+<line x1="748" y1="391.8048780487805" x2="1264" y2="391.8048780487805" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="395.8048780487805" font-size="11" text-anchor="end">20</text>
+<line x1="748" y1="352.5365853658536" x2="1264" y2="352.5365853658536" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="356.5365853658536" font-size="11" text-anchor="end">40</text>
+<line x1="748" y1="313.2682926829268" x2="1264" y2="313.2682926829268" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="317.2682926829268" font-size="11" text-anchor="end">60</text>
+<line x1="748" y1="274.0" x2="1264" y2="274.0" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="278.0" font-size="11" text-anchor="end">80</text>
+<line x1="748.0" y1="274" x2="748.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="748.0" y="452" font-size="11" text-anchor="middle">0</text>
+<line x1="805.3333333333334" y1="274" x2="805.3333333333334" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="805.3333333333334" y="452" font-size="11" text-anchor="middle">1</text>
+<line x1="862.6666666666666" y1="274" x2="862.6666666666666" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="862.6666666666666" y="452" font-size="11" text-anchor="middle">2</text>
+<line x1="920.0" y1="274" x2="920.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="920.0" y="452" font-size="11" text-anchor="middle">3</text>
+<line x1="977.3333333333333" y1="274" x2="977.3333333333333" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="977.3333333333333" y="452" font-size="11" text-anchor="middle">4</text>
+<line x1="1034.6666666666667" y1="274" x2="1034.6666666666667" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1034.6666666666667" y="452" font-size="11" text-anchor="middle">5</text>
+<line x1="1092.0" y1="274" x2="1092.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1092.0" y="452" font-size="11" text-anchor="middle">6</text>
+<line x1="1149.3333333333333" y1="274" x2="1149.3333333333333" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1149.3333333333333" y="452" font-size="11" text-anchor="middle">7</text>
+<line x1="1206.6666666666665" y1="274" x2="1206.6666666666665" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1206.6666666666665" y="452" font-size="11" text-anchor="middle">8</text>
+<line x1="1264.0" y1="274" x2="1264.0" y2="435" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1264.0" y="452" font-size="11" text-anchor="middle">9</text>
+<text x="1006.0" y="470" font-size="11" text-anchor="middle">Seconds since excerpt start</text>
+<polyline points="748.00,431.07 805.34,421.21 862.67,405.35 920.00,385.71 977.34,366.42 1034.67,346.79 1092.00,327.16 1149.34,313.55" fill="none" stroke="#1269b0" stroke-width="2.2" stroke-dasharray=""/>
+<circle cx="748.00" cy="431.07" r="3" fill="#1269b0"><title>t=0.000s, value=0.0000</title></circle>
+<circle cx="805.34" cy="421.21" r="3" fill="#1269b0"><title>t=1.000s, value=5.0230</title></circle>
+<circle cx="862.67" cy="405.35" r="3" fill="#1269b0"><title>t=2.000s, value=13.0990</title></circle>
+<circle cx="920.00" cy="385.71" r="3" fill="#1269b0"><title>t=3.000s, value=23.1060</title></circle>
+<circle cx="977.34" cy="366.42" r="3" fill="#1269b0"><title>t=4.000s, value=32.9300</title></circle>
+<circle cx="1034.67" cy="346.79" r="3" fill="#1269b0"><title>t=5.000s, value=42.9280</title></circle>
+<circle cx="1092.00" cy="327.16" r="3" fill="#1269b0"><title>t=6.000s, value=52.9250</title></circle>
+<circle cx="1149.34" cy="313.55" r="3" fill="#1269b0"><title>t=7.000s, value=59.8560</title></circle>
+<polyline points="748.00,431.07 805.34,421.22 862.67,405.34 920.00,385.71 977.34,366.42 1034.67,346.80 1092.00,327.14 1149.34,313.55" fill="none" stroke="#e17920" stroke-width="2.2" stroke-dasharray="6 3"/>
+<circle cx="748.00" cy="431.07" r="3" fill="#e17920"><title>t=0.000s, value=0.0000</title></circle>
+<circle cx="805.34" cy="421.22" r="3" fill="#e17920"><title>t=1.000s, value=5.0190</title></circle>
+<circle cx="862.67" cy="405.34" r="3" fill="#e17920"><title>t=2.000s, value=13.1070</title></circle>
+<circle cx="920.00" cy="385.71" r="3" fill="#e17920"><title>t=3.000s, value=23.1050</title></circle>
+<circle cx="977.34" cy="366.42" r="3" fill="#e17920"><title>t=4.000s, value=32.9300</title></circle>
+<circle cx="1034.67" cy="346.80" r="3" fill="#e17920"><title>t=5.000s, value=42.9240</title></circle>
+<circle cx="1092.00" cy="327.14" r="3" fill="#e17920"><title>t=6.000s, value=52.9340</title></circle>
+<circle cx="1149.34" cy="313.55" r="3" fill="#e17920"><title>t=7.000s, value=59.8560</title></circle>
+<text x="748" y="481" font-size="11" >Each side uses its own starting position; overlap shows matched travel.</text>
+<text x="696" y="509" font-size="14" font-weight="bold">2. Controller torque commands (N m)</text>
+<line x1="748" y1="680.0555555555555" x2="1264" y2="680.0555555555555" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="684.0555555555555" font-size="11" text-anchor="end">-0.4</text>
+<line x1="748" y1="644.2777777777778" x2="1264" y2="644.2777777777778" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="648.2777777777778" font-size="11" text-anchor="end">-0.2</text>
+<line x1="748" y1="608.5" x2="1264" y2="608.5" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="612.5" font-size="11" text-anchor="end">0</text>
+<line x1="748" y1="572.7222222222222" x2="1264" y2="572.7222222222222" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="576.7222222222222" font-size="11" text-anchor="end">0.2</text>
+<line x1="748" y1="536.9444444444445" x2="1264" y2="536.9444444444445" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="540.9444444444445" font-size="11" text-anchor="end">0.4</text>
+<line x1="748.0" y1="528" x2="748.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="748.0" y="706" font-size="11" text-anchor="middle">0</text>
+<line x1="805.3333333333334" y1="528" x2="805.3333333333334" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="805.3333333333334" y="706" font-size="11" text-anchor="middle">1</text>
+<line x1="862.6666666666666" y1="528" x2="862.6666666666666" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="862.6666666666666" y="706" font-size="11" text-anchor="middle">2</text>
+<line x1="920.0" y1="528" x2="920.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="920.0" y="706" font-size="11" text-anchor="middle">3</text>
+<line x1="977.3333333333333" y1="528" x2="977.3333333333333" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="977.3333333333333" y="706" font-size="11" text-anchor="middle">4</text>
+<line x1="1034.6666666666667" y1="528" x2="1034.6666666666667" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1034.6666666666667" y="706" font-size="11" text-anchor="middle">5</text>
+<line x1="1092.0" y1="528" x2="1092.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1092.0" y="706" font-size="11" text-anchor="middle">6</text>
+<line x1="1149.3333333333333" y1="528" x2="1149.3333333333333" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1149.3333333333333" y="706" font-size="11" text-anchor="middle">7</text>
+<line x1="1206.6666666666665" y1="528" x2="1206.6666666666665" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1206.6666666666665" y="706" font-size="11" text-anchor="middle">8</text>
+<line x1="1264.0" y1="528" x2="1264.0" y2="689" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1264.0" y="706" font-size="11" text-anchor="middle">9</text>
+<text x="1006.0" y="724" font-size="11" text-anchor="middle">Seconds since excerpt start</text>
+<polyline points="748.00,602.42 805.34,599.20 862.67,557.87 920.00,599.38 977.34,563.06 1034.67,600.81 1092.00,536.94 1149.34,592.04" fill="none" stroke="#1269b0" stroke-width="2.2" stroke-dasharray=""/>
+<circle cx="748.00" cy="602.42" r="3" fill="#1269b0"><title>t=0.000s, value=0.0340</title></circle>
+<circle cx="805.34" cy="599.20" r="3" fill="#1269b0"><title>t=1.000s, value=0.0520</title></circle>
+<circle cx="862.67" cy="557.87" r="3" fill="#1269b0"><title>t=2.000s, value=0.2830</title></circle>
+<circle cx="920.00" cy="599.38" r="3" fill="#1269b0"><title>t=3.000s, value=0.0510</title></circle>
+<circle cx="977.34" cy="563.06" r="3" fill="#1269b0"><title>t=4.000s, value=0.2540</title></circle>
+<circle cx="1034.67" cy="600.81" r="3" fill="#1269b0"><title>t=5.000s, value=0.0430</title></circle>
+<circle cx="1092.00" cy="536.94" r="3" fill="#1269b0"><title>t=6.000s, value=0.4000</title></circle>
+<circle cx="1149.34" cy="592.04" r="3" fill="#1269b0"><title>t=7.000s, value=0.0920</title></circle>
+<polyline points="748.00,558.95 805.34,578.27 862.67,577.73 920.00,597.41 977.34,575.76 1034.67,581.67 1092.00,630.32 1149.34,597.05" fill="none" stroke="#e17920" stroke-width="2.2" stroke-dasharray="6 3"/>
+<circle cx="748.00" cy="558.95" r="3" fill="#e17920"><title>t=0.000s, value=0.2770</title></circle>
+<circle cx="805.34" cy="578.27" r="3" fill="#e17920"><title>t=1.000s, value=0.1690</title></circle>
+<circle cx="862.67" cy="577.73" r="3" fill="#e17920"><title>t=2.000s, value=0.1720</title></circle>
+<circle cx="920.00" cy="597.41" r="3" fill="#e17920"><title>t=3.000s, value=0.0620</title></circle>
+<circle cx="977.34" cy="575.76" r="3" fill="#e17920"><title>t=4.000s, value=0.1830</title></circle>
+<circle cx="1034.67" cy="581.67" r="3" fill="#e17920"><title>t=5.000s, value=0.1500</title></circle>
+<circle cx="1092.00" cy="630.32" r="3" fill="#e17920"><title>t=6.000s, value=-0.1220</title></circle>
+<circle cx="1149.34" cy="597.05" r="3" fill="#e17920"><title>t=7.000s, value=0.0640</title></circle>
+<text x="748" y="735" font-size="11" >Example t=6.0s: left +0.400, right -0.122 N m</text>
+<text x="696" y="763" font-size="14" font-weight="bold">3. Logged relative displacement difference: left - right (rad)</text>
+<line x1="748" y1="916.1666666666666" x2="1264" y2="916.1666666666666" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="920.1666666666666" font-size="11" text-anchor="end">-0.01</text>
+<line x1="748" y1="862.5" x2="1264" y2="862.5" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="866.5" font-size="11" text-anchor="end">0</text>
+<line x1="748" y1="808.8333333333333" x2="1264" y2="808.8333333333333" stroke="#e7ecf3" stroke-width="1" stroke-dasharray=""/>
+<text x="739" y="812.8333333333333" font-size="11" text-anchor="end">0.01</text>
+<line x1="748.0" y1="782" x2="748.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="748.0" y="960" font-size="11" text-anchor="middle">0</text>
+<line x1="805.3333333333334" y1="782" x2="805.3333333333334" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="805.3333333333334" y="960" font-size="11" text-anchor="middle">1</text>
+<line x1="862.6666666666666" y1="782" x2="862.6666666666666" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="862.6666666666666" y="960" font-size="11" text-anchor="middle">2</text>
+<line x1="920.0" y1="782" x2="920.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="920.0" y="960" font-size="11" text-anchor="middle">3</text>
+<line x1="977.3333333333333" y1="782" x2="977.3333333333333" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="977.3333333333333" y="960" font-size="11" text-anchor="middle">4</text>
+<line x1="1034.6666666666667" y1="782" x2="1034.6666666666667" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1034.6666666666667" y="960" font-size="11" text-anchor="middle">5</text>
+<line x1="1092.0" y1="782" x2="1092.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1092.0" y="960" font-size="11" text-anchor="middle">6</text>
+<line x1="1149.3333333333333" y1="782" x2="1149.3333333333333" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1149.3333333333333" y="960" font-size="11" text-anchor="middle">7</text>
+<line x1="1206.6666666666665" y1="782" x2="1206.6666666666665" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1206.6666666666665" y="960" font-size="11" text-anchor="middle">8</text>
+<line x1="1264.0" y1="782" x2="1264.0" y2="943" stroke="#edf1f6" stroke-width="1" stroke-dasharray=""/>
+<text x="1264.0" y="960" font-size="11" text-anchor="middle">9</text>
+<text x="1006.0" y="978" font-size="11" text-anchor="middle">Seconds since excerpt start</text>
+<polyline points="748.00,878.60 805.34,851.77 862.67,916.17 920.00,873.23 977.34,873.23 1034.67,846.40 1092.00,921.53 1149.34,867.87" fill="none" stroke="#7750a3" stroke-width="2.2" stroke-dasharray=""/>
+<circle cx="748.00" cy="878.60" r="3" fill="#7750a3"><title>t=0.000s, value=-0.0030</title></circle>
+<circle cx="805.34" cy="851.77" r="3" fill="#7750a3"><title>t=1.000s, value=0.0020</title></circle>
+<circle cx="862.67" cy="916.17" r="3" fill="#7750a3"><title>t=2.000s, value=-0.0100</title></circle>
+<circle cx="920.00" cy="873.23" r="3" fill="#7750a3"><title>t=3.000s, value=-0.0020</title></circle>
+<circle cx="977.34" cy="873.23" r="3" fill="#7750a3"><title>t=4.000s, value=-0.0020</title></circle>
+<circle cx="1034.67" cy="846.40" r="3" fill="#7750a3"><title>t=5.000s, value=0.0030</title></circle>
+<circle cx="1092.00" cy="921.53" r="3" fill="#7750a3"><title>t=6.000s, value=-0.0110</title></circle>
+<circle cx="1149.34" cy="867.87" r="3" fill="#7750a3"><title>t=7.000s, value=-0.0010</title></circle>
+<text x="40" y="1010" font-size="14" font-weight="bold">Interpretation: asymmetric commands accompany closely matched encoder travel in both ascent excerpts.</text>
+<text x="40" y="1035" font-size="13" >Limits: rounded 1 Hz logs may miss peaks; screw lead, initial alignment and transmission slip are not measured.</text>
+<text x="40" y="1057" font-size="13" >The figure supports synchronization under the reported disturbance; it does not prove zero physical tilt.</text>
+</svg>
